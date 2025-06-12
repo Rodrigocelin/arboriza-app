@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Relatório Técnico - ArborizaApp</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://unpkg.com/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <style>
+        /* Estilos CSS */
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background: #f9f9f9;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #2e7d32;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 12px;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 4px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        button {
+            margin-top: 16px;
+            padding: 10px 16px;
+            font-size: 1rem;
+            background: #43a047;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #2e7d32;
+        }
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        .voice-button {
+            margin-top: 5px;
+            margin-bottom: 10px;
+            display: inline-block;
+            width: auto;
+        }
+        #mapaInterativo {
+            height: 300px;
+            width: 100%;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .preview-fotos {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .preview-fotos img {
+            width: 100px;
+            height: 75px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        #loadingMessage, #loadingLocation {
+            display: none;
+            color: #43a047;
+            margin-top: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+        #loadingLocation {
+            text-align: left;
+            display: inline-block;
+            margin-left: 10px;
+        }
+        /* Estilos adicionais para os blocos de árvores */
+        .arvore-item {
+            border: 1px solid #e0e0e0;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            background-color: #ffffff;
+            position: relative;
+        }
+        .arvore-item h3 {
+            margin-top: 0;
+            color: #2e7d32;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+        .arvore-item .remove-arvore {
+            background-color: #d32f2f;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            font-size: 0.8em;
+            margin-top: 0;
+        }
+        .arvore-item .remove-arvore:hover {
+            background-color: #b71c1c;
+        }
+
+        /* Estilos para os campos de seleção/adição dinâmica (Diagnóstico e Indicação) */
+        .selected-tags-container {
+            margin-top: 10px;
+            border: 1px dashed #ccc;
+            padding: 10px;
+            border-radius: 4px;
+            min-height: 50px; /* Garante que a caixa seja visível mesmo vazia */
+        }
+        .tag-item {
+            display: inline-block;
+            background-color: #e0e0e0;
+            padding: 5px 10px;
+            margin: 5px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            white-space: nowrap; /* Impede que o texto quebre */
+        }
+        .tag-item button {
+            background: none;
+            border: none;
+            color: #d32f2f;
+            font-weight: bold;
+            margin-left: 5px;
+            padding: 0;
+            cursor: pointer;
+            font-size: 1em;
+            line-height: 1; /* Alinha o "x" verticalmente */
+            vertical-align: middle; /* Ajuda a alinhar com o texto */
+            margin-top: -2px; /* Pequeno ajuste visual */
+        }
+        .tag-item button:hover {
+            color: #b71c1c;
+            background: none; /* Garantir que o hover não mude o fundo */
+        }
+        .add-section {
+            display: flex;
+            align-items: flex-end; /* Alinha o botão com a parte inferior do select */
+            gap: 10px;
+        }
+        .add-section select {
+            flex-grow: 1; /* Permite que o select ocupe o espaço disponível */
+        }
+
+        /* Classe para ocultar campos no modo Plantio */
+        .campo-plantio-oculto {
+            display: none !important;
+        }
+
+        /* Nova classe para controlar a visibilidade dos campos específicos de Plantio */
+        .plantio-fields-container {
+            display: none; /* Oculto por padrão */
+            border: 1px dashed #ccc;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 8px;
+            background-color: #f0f8f0; /* Um fundo levemente verde */
+        }
+    </style>
+</head>
+<body>
+    <h1>RELATÓRIO TÉCNICO</h1>
+    <form id="formRelatorio">
+        <label>Ref.:</label>
+        <div style="display: flex; gap: 10px; align-items: flex-end;">
+            <select id="tipoReferencia" style="flex-grow: 0; width: auto;">
+                <option value="Processo">Processo</option>
+                <option value="SIC">SIC</option>
+                <option value="Protocolo">Protocolo</option>
+                <option value="Demanda Interna">Demanda Interna</option>
+                <option value="Indicação">Indicação</option>
+            </select>
+            <input type="text" id="numeroReferencia" placeholder="Número da referência" style="flex-grow: 1;" />
+        </div>
+
+        <label for="numero">Relatório Nº.:</label>
+        <input type="text" id="numero" required readonly />
+
+        <label for="servico">Serviço:</label>
+        <select type="text" id="servico" required>
+            <option value="">Selecione um serviço...</option>
+            <option value="Poda">Poda</option>
+            <option value="Retirada">Retirada</option>
+            <option value="Área livre">Área livre</option>
+            <option value="Tratamento Fitossanitário">Tratamento Fitossanitário</option>
+            <option value="Plantio">Plantio</option>
+            <option value="Outros">Outros</option>
+        </select>
+
+        <label for="bairro">Bairro:</label>
+        <input type="text" id="bairro" required />
+
+        <label for="endereco">Endereço:</label>
+        <input type="text" id="endereco" required />
+
+        <div id="plantioFieldsContainer" class="plantio-fields-container">
+            <h3>Informações para Plantio</h3>
+            <label for="aberturaAreaLivre">Abertura de Área Livre:</label>
+            <select id="aberturaAreaLivre">
+                <option value="">Selecione uma opção</option>
+                <option value="Área pavimentada">Área pavimentada</option>
+                <option value="Área não pavimentada">Área não pavimentada</option>
+            </select>
+
+            <label for="larguraCalcada">Largura da Calçada (m):</label>
+            <input type="number" id="larguraCalcada" step="0.1" min="0" placeholder="Ex: 1.5" />
+        </div>
+
+        <div id="arvoresContainer">
+            </div>
+
+        <button type="button" id="btnAddArvore" style="margin-bottom: 20px;">+ Adicionar Árvore</button>
+
+        <label>Localização atual:</label>
+        <button type="button" id="btnObterLocalizacao" onclick="obterLocalizacao()">📍 Obter Localização</button>
+        <span id="loadingLocation">Obtendo localização...</span>
+        <div id="mapaInterativo"></div>
+
+        <label>Fotos do Local (até 4):</label>
+        <input type="file" id="foto1" accept="image/*" capture="environment" />
+        <input type="file" id="foto2" accept="image/*" capture="environment" />
+        <input type="file" id="foto3" accept="image/*" capture="environment" />
+        <input type="file" id="foto4" accept="image/*" capture="environment" />
+        <div id="previewFotos" class="preview-fotos"></div>
+
+        <label for="tecnico">Responsável Técnico:</label>
+        <input type="text" id="tecnico" required />
+
+        <label for="dataFinal">Data de Emissão:</label>
+        <input type="date" id="dataFinal" required />
+
+        <button type="submit" id="btnGerarPdf">Gerar PDF</button>
+        <div id="loadingMessage">Gerando PDF, aguarde...</div>
+    </form>
+
+    <script>
+        const { jsPDF } = window.jspdf;
+        let mapa, marcador, latGlobal, lngGlobal;
+
+        // Armazena os dados das árvores, incluindo seus diagnósticos, indicações e OBS
+        let arvoresData = [];
+        let arvoreCounter = 0; // Para dar IDs únicos a cada conjunto de campos de árvore (não para a numeração visual)
+
+        // Função auxiliar para adicionar texto a um campo com quebra de linha
+        function appendTextToField(fieldId, text) {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.value += (field.value ? "\n" : "") + text;
+            }
+        }
+
+        // Função para transcrever voz para texto
+        function transcreverVozParaTexto(idCampo) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                alert("Seu navegador não suporta reconhecimento de voz ou a conexão não é segura (HTTPS). Por favor, use um navegador moderno e uma conexão segura.");
+                return;
+            }
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'pt-BR';
+            recognition.start();
+            recognition.onresult = e => {
+                appendTextToField(idCampo, e.results[0][0].transcript);
+            };
+            recognition.onerror = e => {
+                console.error("Erro no reconhecimento de voz:", e.error);
+                alert("Ocorreu um erro no reconhecimento de voz. Verifique se a conexão é HTTPS e se você deu permissão para o microfone. Erro: " + e.error);
+            };
+            recognition.onend = () => {
+                console.log("Reconhecimento de voz encerrado.");
+            };
+        }
+
+        // Função para obter a localização atual e exibir no mapa
+        function obterLocalizacao() {
+            const btnObterLocalizacao = document.getElementById('btnObterLocalizacao');
+            const loadingLocationSpan = document.getElementById('loadingLocation');
+
+            btnObterLocalizacao.disabled = true;
+            loadingLocationSpan.style.display = 'inline';
+
+            if (!navigator.geolocation) {
+                alert("Geolocalização não é suportada pelo seu navegador.");
+                btnObterLocalizacao.disabled = false;
+                loadingLocationSpan.style.display = 'none';
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(pos => {
+                latGlobal = pos.coords.latitude;
+                lngGlobal = pos.coords.longitude;
+
+                if (!mapa) {
+                    mapa = L.map('mapaInterativo').setView([latGlobal, lngGlobal], 19);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '© OpenStreetMap contributors',
+                        crossOrigin: true
+                    }).addTo(mapa);
+                    marcador = L.marker([latGlobal, lngGlobal]).addTo(mapa);
+                } else {
+                    mapa.setView([latGlobal, lngGlobal], 19);
+                    marcador.setLatLng([latGlobal, lngGlobal]);
+                }
+                btnObterLocalizacao.disabled = false;
+                loadingLocationSpan.style.display = 'none';
+            }, err => {
+                alert("Erro ao obter localização: " + err.message + ". Verifique se você deu permissão para a localização no seu navegador e nas configurações do seu celular.");
+                console.error("Erro de geolocalização:", err);
+                btnObterLocalizacao.disabled = false;
+                loadingLocationSpan.style.display = 'none';
+            });
+        }
+
+        // Função para comprimir imagens
+        async function compressImage(file, maxWidth = 800) {
+            return new Promise((resolve, reject) => {
+                if (!file) {
+                    resolve(null);
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > maxWidth) {
+                            height = Math.round((height * maxWidth) / width);
+                            width = maxWidth;
+                        }
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.8));
+                    };
+                    img.onerror = () => reject("Erro ao carregar a imagem para compressão.");
+                    reader.onerror = () => reject("Erro ao ler o arquivo de imagem.");
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // --- FUNÇÃO PARA GERENCIAR A CONTAGEM AUTOMÁTICA DO RELATÓRIO ---
+        function getNextReportNumber() {
+            const currentYear = new Date().getFullYear();
+            let lastReportData = localStorage.getItem('arborizaAppReportNumber');
+            let reportNumber = 1;
+            let savedYear = currentYear;
+
+            if (lastReportData) {
+                try {
+                    const data = JSON.parse(lastReportData);
+                    savedYear = data.year;
+                    if (savedYear === currentYear) {
+                        reportNumber = data.number + 1;
+                    } else {
+                        // Ano mudou, reiniciar a contagem
+                        reportNumber = 1;
+                    }
+                } catch (e) {
+                    console.error("Erro ao parsear dados do relatório do LocalStorage:", e);
+                    // Em caso de erro, reiniciar contagem
+                    reportNumber = 1;
+                }
+            }
+
+            // Atualiza o LocalStorage com o próximo número e o ano atual
+            localStorage.setItem('arborizaAppReportNumber', JSON.stringify({ number: reportNumber, year: currentYear }));
+
+            return `${reportNumber}/${currentYear}`;
+        }
+
+        // Função genérica para adicionar um item a uma lista específica de uma árvore
+        function addItemToList(selectId, treeId, type) { // type: 'diagnoses' or 'indications'
+            const select = document.getElementById(selectId);
+            const itemValue = select.value;
+            const itemText = select.options[select.selectedIndex].text;
+            const containerDiv = document.getElementById(`${type}Selecionados-${treeId}`);
+
+            const arvore = arvoresData.find(a => a.id === treeId);
+            if (!arvore) return;
+
+            const listArray = arvore[type]; // reference to either arvore.diagnoses or arvore.indications
+
+            if (itemValue && !listArray.includes(itemValue)) {
+                listArray.push(itemValue);
+
+                const tagDiv = document.createElement('div');
+                tagDiv.classList.add('tag-item');
+                tagDiv.dataset.value = itemValue;
+                tagDiv.innerHTML = `${itemText} <button type="button" class="remove-tag">x</button>`;
+                containerDiv.appendChild(tagDiv);
+
+                // Adiciona listener para o botão de remover
+                tagDiv.querySelector('.remove-tag').addEventListener('click', () => {
+                    removeItemFromList(itemValue, treeId, type, tagDiv);
+                });
+
+                select.value = ""; // Reseta o select
+            }
+        }
+
+        // Função genérica para remover um item de uma lista específica de uma árvore
+        function removeItemFromList(valueToRemove, treeId, type, elementToRemove) {
+            const arvore = arvoresData.find(a => a.id === treeId);
+            if (!arvore) return;
+
+            const listArray = arvore[type];
+            const index = listArray.indexOf(valueToRemove);
+            if (index > -1) {
+                listArray.splice(index, 1); // Remove apenas 1 item no índice encontrado
+            }
+            elementToRemove.remove(); // Remove o elemento visual
+        }
+
+        // Função para atualizar os títulos das árvores (Árvore 1, Árvore 2, etc.)
+        function updateArvoreTitles() {
+            const arvoreItems = document.querySelectorAll('.arvore-item');
+            const newArvoresData = []; // Cria um novo array para a ordem correta
+
+            arvoreItems.forEach((item, index) => {
+                // Atualiza o título H3 visual
+                item.querySelector('h3').innerText = `Árvore ${index + 1}`;
+
+                // Recria o arvoresData na ordem correta, mantendo os dados associados
+                const originalTreeId = item.id; // Ex: arvore-1, arvore-5, etc.
+                const existingData = arvoresData.find(a => a.id === originalTreeId);
+                if (existingData) {
+                    newArvoresData.push(existingData);
+                } else {
+                    // Isso não deveria acontecer se a lógica de remoção estiver correta,
+                    // mas é um fallback.
+                    console.warn(`Dados para ${originalTreeId} não encontrados em arvoresData.`);
+                    newArvoresData.push({
+                        id: originalTreeId,
+                        especie: "",
+                        quantidade: 0,
+                        posicao: "",
+                        altura: 0,
+                        cap: 0,
+                        diagnoses: [],
+                        indications: [],
+                        obsArvore: ""
+                    });
+                }
+            });
+            arvoresData = newArvoresData; // Atualiza o array global de dados
+            console.log("DEBUG: arvoresData após updateTitles:", arvoresData); // Para depuração
+        }
+
+
+        // Função para adicionar um novo bloco de campos de árvore
+        function addArvoreFields() {
+            arvoreCounter++; // Incrementa para um ID único para o elemento DOM
+            const currentTreeId = `arvore-${arvoreCounter}`;
+            const container = document.getElementById('arvoresContainer');
+
+            const arvoreDiv = document.createElement('div');
+            arvoreDiv.id = currentTreeId;
+            arvoreDiv.classList.add('arvore-item');
+
+            let especiesOptions = `
+                <option value="">Selecione a Espécie</option>
+                <option value="Ipê Roxo">Ipê Roxo</option>
+                <option value="Ipê Amarelo">Ipê Amarelo</option>
+                <option value="Ipê Branco">Ipê Branco</option>
+                <option value="Flamboyant">Flamboyant</option>
+                <option value="Sibipiruna">Sibipiruna</option>
+                <option value="Quaresmeira">Quaresmeira</option>
+                <option value="Cajueiro">Cajueiro</option>
+                <option value="Mangueira">Mangueira</option>
+                <option value="Outra">Outra</option>
+            `;
+
+            let posicoesOptions = `
+                <option value="">Selecione a Posição</option>
+                <option value="Calçada">Calçada</option>
+                <option value="Canteiro Central">Canteiro Central</option>
+                <option value="Canteiro Lateral">Canteiro Lateral</option>
+                <option value="Recanto">Recanto</option>
+                <option value="Rotatória/Trevo">Rotatória/Trevo</option>
+                <option value="Alameda">Alameda</option>
+                <option value="Orla">Orla</option>
+                <option value="Área Livre">Área Livre</option>
+            `;
+
+            let diagnosticoOptions = `
+                <option value="">Selecione um diagnóstico para adicionar...</option>
+                <option value="Área livre em desconformidade com as diretrizes técnicas">Área livre em desconformidade com as diretrizes técnicas</option>
+                <option value="Vegetal com problemas no tutoramento">Vegetal com problemas no tutoramento</soption>
+                <option value="Vegetal morto">Vegetal morto</option>
+                <option value="Vegetal Inclinado">Vegetal Inclinado</option>
+                <option value="Vegetal inclinado em direção à residência">Vegetal inclinado em direção à residência</option>
+                <option value="Vegetal inclinado em direção à via pública">Vegetal inclinado em direção à via pública</option>
+                <option value="Vegetal com lesão necrótica no tronco">Vegetal com lesão necrótica no tronco</option>
+                <option value="Vegetal com lesão necrótica em galhos">Vegetal com lesão necrótica em galhos</option>
+                <option value="Vegetal com lesão necrótica e perda de tecidos (oco)">Vegetal com lesão necrótica e perda de tecidos (oco)</option>
+                <option value="Vegetal com injúria mecânica">Vegetal com injúria mecânica</option>
+                <option value="Vegetal com indicativo de injúria química">Vegetal com indicativo de injúria química</option>
+                <option value="Vegetal em conflito com obra de infraestrutura urbana">Vegetal em conflito com obra de infraestrutura urbana</option>
+                <option value="Vegetal em conflito com serviço público">Vegetal em conflito com serviço público</option>
+                <option value="Vegetal em conflito com obras/serviços de construção e reforma de edificações">Vegetal em conflito com obras/serviços de construção e reforma de edificações</option>
+                <option value="Vegetal em conflito com muro">Vegetal em conflito com muro</option>
+                <option value="Vegetal em conflito com mobiliário urbano">Vegetal em conflito com mobiliário urbano</option>
+                <option value="Vegetal em local inadequado">Vegetal em local inadequado</option>
+                <option value="Vegetal em risco de queda">Vegetal em risco de queda</option>
+                <option value="Vegetal com deficiência nutricional">Vegetal com deficiência nutricional</option>
+                <option value="Vegetal em bom estado vegetativo">Vegetal em bom estado vegetativo</option>
+                <option value="Vegetal sem necessidade de manejo (no momento da vistoria)">Vegetal sem necessidade de manejo (no momento da vistoria) Vegetal sem necessidade de manejo (no momento da vistoria)</option>
+                <option value="Vegetal apresentando infestação por cupins">Vegetal apresentando infestação por cupins</option>
+                <option value="Vegetal apresentando infestação por pulgões">Vegetal apresentando infestação por pulgões</option>
+                <option value="Vegetal apresentando infestação por cochonilha">Vegetal apresentando infestação por cochonilha</option>
+                <option value="Vegetal apresentando infestação por fumagina">Vegetal apresentando infestação por fumagina</option>
+                <option value="Copa em conflito com a iluminação pública">Copa em conflito com a iluminação pública</option>
+                <option value="Copa em conflito com edificação">Copa em conflito com edificação</option>
+                <option value="Copa interferindo no trânsito de pedestres">Copa interferindo no trânsito de Pedestres</option>
+                <option value="Copa interferindo no trânsito de Veículos">Copa interferindo no trânsito de Veículos</option>
+                <option value="Copa com galhos secos">Copa com galhos secos</option>
+                <option value="Copa com galhos doentes">Copa com galhos doentes</option>
+                <option value="Copa com galhos pendentes em risco de queda">Copa com galhos pendentes em risco de queda</option>
+                <option value="Copa desequilibrada">Copa desequilibrada</option>
+                <option value="Copa descaracterizada">Copa descaracterizada</option>
+                <option value="Copa em conflito com a rede elétrica">Copa em conflito com a rede elétrica</option>
+                <option value="Copa incompatível com o espaço disponível">Copa incompatível com o espaço disponível</option>
+                <option value="Copa infestada por erva passarinho">Copa infestada por erva passarinho</option>
+                <option value="Raízes afloradas">Raízes afloradas</option>
+                <option value="Raízes causando rachaduras na calçada">Raízes causando rachaduras na calçada</option>
+                <option value="Raízes causando rachaduras no muro">Raízes causando rachaduras no muro</option>
+                <option value="Raízes causando rachaduras na via pública">Raízes causando rachaduras na via pública</option>
+                <option value="Raízes causando rachaduras na calçada e no muro">Raízes causando rachaduras na calçada e no muro</option>
+                <option value="Raízes causando rachaduras na calçada, no muro e na via pública">Raízes causando rachaduras na calçada, no muro e na via pública</option>
+                <option value="Raízes em conflito com a rede de esgoto">Raízes em conflito com a rede de esgoto</option>
+                <option value="Raízes em conflito com a rede de água">Raízes em conflito com a rede de água</option>
+                <option value="Raízes em conflito com a rede de drenagem pluvial">Raízes em conflito com a rede de drenagem pluvial</option>
+                <option value="Raízes em conflito com o mobiliário urbano">Raízes em conflito com o mobiliário urbano</option>
+                <option value="Outras situações">Outras situações</option>
+            `;
+
+            let indicacaoOptions = `
+                <option value="">Selecione uma indicação para adicionar...</option>
+                <option value="Retirada com substituição">Retirada com substituição</option>
+                <option value="Retirada sem substituição">Retirada sem substituição</option>
+                <option value="Retirada - Termo de Compromisso Ambiental (TCA)">Retirada - Termo de Compromisso Ambiental (TCA)</option>
+                <option value="Poda de caule/fuste">Poda de caule/fuste</option>
+                <option value="Poda de condução">Poda de condução</option>
+                <option value="Poda de correção">Poda de correção</option>
+                <option value="Poda de conformação">Poda de conformação</option>
+                <option value="Poda de compensação">Poda de compensação</option>
+                <option value="Poda de limpeza">Poda de limpeza</option>
+                <option value="Poda de adaptação">Poda de adaptação</option>
+                <option value="Poda de adaptação/levantamento de copa">Poda de adaptação/levantamento de copa</option>
+                <option value="Poda de adaptação/rebaixamento de copa">Poda de adaptação/rebaixamento de copa</option>
+                <option value="Poda de preparação">Poda de preparação</option>
+                <option value="Poda drástica">Poda drástica</option>
+                <option value="Poda de raízes">Poda de raízes</option>
+                <option value="Ampliação de área livre">Ampliação de área livre</option>
+                <option value="Fechamento de área livre">Fechamento de área livre</option>
+                <option value="Controle fitossanitário">Controle fitossanitário</option>
+                <option value="Dendrocirurgia">Dendrocirurgia</option>
+                <option value="outras">outras</option>
+            `;
+
+
+            arvoreDiv.innerHTML = `
+                <h3>Árvore </h3> <label for="especie-${arvoreCounter}">Espécie:</label>
+                <select id="especie-${arvoreCounter}" required>${especiesOptions}</select>
+
+                <label for="quantidade-${arvoreCounter}">Quantidade:</label>
+                <input type="number" id="quantidade-${arvoreCounter}" min="1" value="1" required />
+
+                <label for="posicao-${arvoreCounter}">Posição:</label>
+                <select id="posicao-${arvoreCounter}" required>${posicoesOptions}</select>
+
+                <div class="campo-condicional-altura-cap">
+                    <label for="altura-${arvoreCounter}">Altura (m):</label>
+                    <input type="number" id="altura-${arvoreCounter}" step="0.1" />
+
+                    <label for="cap-${arvoreCounter}">CAP (cm) - Circunferência à Altura do Peito:</label>
+                    <input type="number" id="cap-${arvoreCounter}" step="0.1" />
+                </div>
+
+                <div class="campo-condicional-diagnostico">
+                    <label for="selectDiagnostico-${arvoreCounter}">Diagnóstico:</label>
+                    <div class="add-section">
+                        <select id="selectDiagnostico-${arvoreCounter}">${diagnosticoOptions}</select>
+                        <button type="button" class="btnAddDiagnosticoTree" data-tree-id="${currentTreeId}">Adicionar</button>
+                    </div>
+                    <div id="diagnosesSelecionados-${currentTreeId}" class="selected-tags-container">
+                        </div>
+                </div>
+
+                <div class="campo-condicional-indicacao">
+                    <label for="selectIndicacao-${arvoreCounter}">Indicação:</label>
+                    <div class="add-section">
+                        <select id="selectIndicacao-${arvoreCounter}">${indicacaoOptions}</select>
+                        <button type="button" class="btnAddIndicacaoTree" data-tree-id="${currentTreeId}">Adicionar</button>
+                    </div>
+                    <div id="indicationsSelecionados-${currentTreeId}" class="selected-tags-container">
+                        </div>
+                </div>
+
+                <label for="obsArvore-${arvoreCounter}">Obs:</label>
+                <textarea id="obsArvore-${arvoreCounter}" rows="3"></textarea>
+                <button type="button" onclick="transcreverVozParaTexto('obsArvore-${arvoreCounter}')" class="voice-button">🎤 Falar e transcrever</button>
+
+                <button type="button" class="remove-arvore" data-arvore-id="${currentTreeId}">Remover Árvore</button>
+                <hr style="margin-top: 15px; margin-bottom: 15px; border-top: 1px dashed #ccc;">
+            `;
+            container.appendChild(arvoreDiv);
+
+            // Adiciona o novo objeto de árvore ao array global
+            arvoresData.push({
+                id: currentTreeId,
+                especie: "", // Inicializa com valores vazios
+                quantidade: 1,
+                posicao: "",
+                altura: null,
+                cap: null,
+                diagnoses: [],
+                indications: [],
+                obsArvore: ""
+            });
+
+            // Adiciona event listener para o botão remover
+            arvoreDiv.querySelector(`.remove-arvore`).addEventListener('click', (event) => {
+                const idToRemove = event.target.dataset.arvoreId;
+                document.getElementById(idToRemove).remove();
+                arvoresData = arvoresData.filter(arvore => arvore.id !== idToRemove);
+                updateArvoreTitles();
+                applyTreeFieldVisibility();
+            });
+
+            // Adiciona event listeners para os botões de adicionar diagnóstico e indicação
+            arvoreDiv.querySelector(`.btnAddDiagnosticoTree`).addEventListener('click', (event) => {
+                const treeId = event.target.dataset.treeId;
+                addItemToList(`selectDiagnostico-${arvoreCounter}`, treeId, 'diagnoses');
+            });
+            arvoreDiv.querySelector(`.btnAddIndicacaoTree`).addEventListener('click', (event) => {
+                const treeId = event.target.dataset.treeId;
+                addItemToList(`selectIndicacao-${arvoreCounter}`, treeId, 'indications');
+            });
+
+            // Adiciona event listeners para os campos que afetam arvoresData (e a sugestão de OS)
+            arvoreDiv.querySelector(`#especie-${arvoreCounter}`).addEventListener('change', (event) => {
+                const arvore = arvoresData.find(a => a.id === currentTreeId);
+                if (arvore) arvore.especie = event.target.value;
+            });
+            arvoreDiv.querySelector(`#quantidade-${arvoreCounter}`).addEventListener('input', (event) => {
+                const arvore = arvoresData.find(a => a.id === currentTreeId);
+                if (arvore) arvore.quantidade = parseInt(event.target.value) || 0;
+            });
+            arvoreDiv.querySelector(`#posicao-${arvoreCounter}`).addEventListener('change', (event) => {
+                const arvore = arvoresData.find(a => a.id === currentTreeId);
+                if (arvore) arvore.posicao = event.target.value;
+            });
+            arvoreDiv.querySelector(`#altura-${arvoreCounter}`).addEventListener('input', (event) => {
+                const arvore = arvoresData.find(a => a.id === currentTreeId);
+                if (arvore) arvore.altura = parseFloat(event.target.value) || null;
+            });
+            arvoreDiv.querySelector(`#cap-${arvoreCounter}`).addEventListener('input', (event) => {
+                const arvore = arvoresData.find(a => a.id === currentTreeId);
+                if (arvore) arvore.cap = parseFloat(event.target.value) || null;
+            });
+            arvoreDiv.querySelector(`#obsArvore-${arvoreCounter}`).addEventListener('input', (event) => {
+                const arvore = arvoresData.find(a => a.id === currentTreeId);
+                if (arvore) arvore.obsArvore = event.target.value;
+            });
+
+
+            updateArvoreTitles();
+            applyTreeFieldVisibility();
+        }
+
+        // Função para ajustar a visibilidade dos campos dentro de cada bloco de árvore E dos novos campos de plantio
+        function applyTreeFieldVisibility() {
+            const selectServico = document.getElementById('servico');
+            const isPlantio = (selectServico.value === 'Plantio');
+            const plantioFieldsContainer = document.getElementById('plantioFieldsContainer');
+
+            // Controla a visibilidade dos novos campos de Plantio NO FORMULÁRIO
+            if (isPlantio) {
+                plantioFieldsContainer.style.display = 'block';
+            } else {
+                plantioFieldsContainer.style.display = 'none';
+                // Limpa os valores quando o container é ocultado
+                document.getElementById('aberturaAreaLivre').value = '';
+                document.getElementById('larguraCalcada').value = '';
+            }
+
+
+            document.querySelectorAll('.arvore-item').forEach(arvoreItem => {
+                const treeId = arvoreItem.id.split('-')[1];
+
+                const alturaCapFields = arvoreItem.querySelector('.campo-condicional-altura-cap');
+                if (alturaCapFields) {
+                    if (isPlantio) {
+                        alturaCapFields.classList.add('campo-plantio-oculto');
+                        arvoreItem.querySelector(`#altura-${treeId}`).removeAttribute('required');
+                        // Removido o required do CAP aqui também para garantir a não obrigatoriedade
+                        arvoreItem.querySelector(`#cap-${treeId}`).removeAttribute('required');
+                    } else {
+                        alturaCapFields.classList.remove('campo-plantio-oculto');
+                    }
+                }
+
+                const diagnosticoField = arvoreItem.querySelector('.campo-condicional-diagnostico');
+                if (diagnosticoField) {
+                    if (isPlantio) {
+                        diagnosticoField.classList.add('campo-plantio-oculto');
+                    } else {
+                        diagnosticoField.classList.remove('campo-plantio-oculto');
+                    }
+                }
+
+                const indicacaoField = arvoreItem.querySelector('.campo-condicional-indicacao');
+                if (indicacaoField) {
+                    if (isPlantio) {
+                        indicacaoField.classList.add('campo-plantio-oculto');
+                    } else {
+                        indicacaoField.classList.remove('campo-plantio-oculto');
+                    }
+                }
+            });
+        }
+
+
+        // Event Listener para preencher os previews das fotos
+        document.addEventListener('DOMContentLoaded', () => {
+            const previewFotosDiv = document.getElementById('previewFotos');
+            const inputFotos = ['foto1', 'foto2', 'foto3', 'foto4'];
+
+            inputFotos.forEach(id => {
+                const inputElement = document.getElementById(id);
+                if (inputElement) {
+                    inputElement.addEventListener('change', function(event) {
+                        const existingImg = previewFotosDiv.querySelector(`img[data-input-id="${id}"]`);
+                        if (existingImg) {
+                            existingImg.remove();
+                        }
+
+                        if (event.target.files && event.target.files[0]) {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                const img = document.createElement('img');
+                                img.src = e.target.result;
+                                img.dataset.inputId = id;
+                                previewFotosDiv.appendChild(img);
+                            };
+                            reader.readAsDataURL(event.target.files[0]);
+                        }
+                    });
+                }
+            });
+
+            const selectServico = document.getElementById('servico');
+            const arvoresContainer = document.getElementById('arvoresContainer');
+            const btnAddArvore = document.getElementById('btnAddArvore');
+
+
+            // Funções para controlar a visibilidade
+            function setTreeSectionVisibility(isVisible) {
+                arvoresContainer.style.display = isVisible ? 'block' : 'none';
+                btnAddArvore.style.display = isVisible ? 'block' : 'none';
+                if (!isVisible) {
+                    arvoresData = [];
+                    arvoresContainer.innerHTML = '';
+                    arvoreCounter = 0;
+                } else if (arvoresData.length === 0) {
+                    addArvoreFields();
+                }
+                updateArvoreTitles();
+                applyTreeFieldVisibility(); // Reaplicar visibilidade específica dos campos
+            }
+
+            selectServico.addEventListener('change', () => {
+                setTreeSectionVisibility(selectServico.value !== '');
+            });
+
+
+            // Chama no carregamento da página para definir o estado inicial
+            setTreeSectionVisibility(selectServico.value !== '');
+            // O `Plantio` será tratado dentro de `applyTreeFieldVisibility`
+
+            // --- CHAMADA INICIAL PARA PREENCHER O NÚMERO DO RELATÓRIO AO CARREGAR A PÁGINA ---
+            document.getElementById("numero").value = getNextReportNumber();
+
+        });
+
+        // Event listener para o botão "Adicionar Árvore"
+        document.getElementById('btnAddArvore').addEventListener('click', addArvoreFields);
+
+
+        // Função principal para gerar o PDF
+        async function gerarPDF() {
+            console.log("📄 Iniciando geração do PDF...");
+            const doc = new jsPDF();
+            // A função get foi ajustada para os novos IDs
+            const get = id => document.getElementById(id)?.value || "";
+
+            const numeroRelatorio = document.getElementById("numero").value;
+            const responsavelTecnico = get("tecnico");
+            let dataFormatada = "____/____/____";
+            const dataRaw = get("dataFinal");
+            if (dataRaw && dataRaw.includes("-")) {
+                const partes = dataRaw.split("-");
+                if (partes.length === 3) {
+                    dataFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
+                }
+            }
+
+            // --- Configurações de Margem e Cor de Linha ---
+            const marginX = 20;
+            const marginYTop = 15;
+            const marginYBottom = 30;
+            const pageWidth = doc.internal.pageSize.width;
+            const pageHeight = doc.internal.pageSize.height;
+            doc.setDrawColor(150, 150, 150);
+
+            // --- Cabeçalho do Relatório ---
+            doc.setFontSize(18);
+            doc.text("RELATÓRIO TÉCNICO", pageWidth / 2, marginYTop, { align: "center" });
+
+            let y = marginYTop + 5;
+
+            // --- Linha Horizontal Acima da Tabela de Dados Principais ---
+            doc.line(marginX, y, pageWidth - marginX, y);
+            y += 5;
+
+            // --- Tabela de Dados Principais ---
+            const servicoSelecionado = document.getElementById("servico").value;
+
+            // Função para adicionar o rodapé fixo
+            const addFooter = (doc, responsavelTecnico, dataFormatada) => {
+                const lineY = pageHeight - 20;
+                const textY = pageHeight - 15;
+
+                doc.setFontSize(9);
+                doc.setTextColor(0, 0, 0);
+                doc.setFont('helvetica', 'normal');
+
+                doc.text(`Responsável Técnico: ${responsavelTecnico}`, marginX, textY);
+                doc.text(`Data de Emissão: ${dataFormatada}`, pageWidth - marginX, textY, { align: "right" });
+
+                doc.setDrawColor(150, 150, 150);
+                doc.line(marginX, lineY, pageWidth - marginX, lineY);
+            };
+
+            const mainTableBody = [
+                ['Ref.:', `${get("tipoReferencia")}: ${get("numeroReferencia")}`],
+                ['Relatório Nº:', numeroRelatorio],
+                ['Serviço:', servicoSelecionado],
+                ['Bairro:', get("bairro")],
+                ['Endereço:', get("endereco")]
+            ];
+
+            // Campos de Plantio removidos da tabela principal aqui
+
+            doc.autoTable({
+                startY: y,
+                body: mainTableBody,
+                theme: 'plain',
+                styles: {
+                    fontSize: 11,
+                    cellPadding: 0,
+                    overflow: 'linebreak'
+                },
+                columnStyles: {
+                    0: {
+                        cellWidth: 'auto',
+                        fontStyle: 'bold',
+                        textColor: [46, 125, 50],
+                        halign: 'left',
+                        cellPadding: { left: 0, right: 0, top: 0.5, bottom: 0.5 }
+                    },
+                    1: {
+                        cellWidth: 'auto',
+                        halign: 'left',
+                        cellPadding: { left: 0, right: 0, top: 0.5, bottom: 0.5 }
+                    }
+                },
+                margin: { left: marginX, right: marginX },
+                didDrawPage: (data) => {
+                    addFooter(doc, responsavelTecnico, dataFormatada);
+                }
+            });
+
+            y = doc.autoTable.previous.finalY + 10;
+
+            // Linha horizontal inferior da tabela principal (mantida)
+            doc.line(marginX, doc.autoTable.previous.finalY + 5, pageWidth - marginX, doc.autoTable.previous.finalY + 5);
+            y = doc.autoTable.previous.finalY + 8;
+
+            // --- Coleta e adição dos dados das Árvores ao PDF ---
+            const arvoresParaPdf = [];
+            arvoresData.forEach((arvoreDataEntry, index) => {
+                const arvoreDiv = document.getElementById(arvoreDataEntry.id);
+                if (arvoreDiv) {
+                    const arvoreNumId = arvoreDiv.id.split('-')[1];
+
+                    const especie = arvoreDiv.querySelector(`#especie-${arvoreNumId}`).value;
+                    const quantidade = arvoreDiv.querySelector(`#quantidade-${arvoreNumId}`).value;
+                    const posicao = arvoreDiv.querySelector(`#posicao-${arvoreNumId}`).value;
+                    const altura = arvoreDiv.querySelector(`#altura-${arvoreNumId}`).value;
+                    const cap = arvoreDiv.querySelector(`#cap-${arvoreNumId}`).value;
+                    const obsArvore = arvoreDiv.querySelector(`#obsArvore-${arvoreNumId}`).value;
+
+                    const isPlantio = (servicoSelecionado === 'Plantio');
+                    const isFilledForPlantio = especie && quantidade !== "" && posicao;
+                    const isFilledForOtherServices = especie && quantidade !== "" && posicao && altura !== ""; // CAP is now optional
+
+                    if ((isPlantio && isFilledForPlantio) || (!isPlantio && isFilledForOtherServices)) {
+                        arvoresParaPdf.push({
+                            numero: index + 1,
+                            especie,
+                            quantidade,
+                            posicao,
+                            altura: isPlantio ? "N/A" : (altura || "N/A"), // Fallback if empty
+                            cap: isPlantio ? "N/A" : (cap || "N/A"), // Fallback if empty
+                            diagnoses: isPlantio ? [] : arvoreDataEntry.diagnoses,
+                            indications: isPlantio ? [] : arvoreDataEntry.indications,
+                            obsArvore: obsArvore
+                        });
+                    }
+                }
+            });
+
+            if (arvoresParaPdf.length > 0) {
+                y += 7;
+                if (y + 20 > pageHeight - marginYBottom) {
+                    doc.addPage();
+                    y = marginYTop;
+                    addFooter(doc, responsavelTecnico, dataFormatada);
+                }
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor("#2e7d32");
+                doc.setFontSize(12);
+                // Título condicional da seção de árvores
+                doc.text(servicoSelecionado === 'Plantio' ? "Árvore(s) indicada(s) para plantio:" : "Informações das Árvores:", marginX, y);
+                doc.setTextColor(0, 0, 0);
+                doc.setFont('helvetica', 'normal');
+                y += 5;
+
+                const tableHead = (servicoSelecionado === 'Plantio') ?
+                                    [['Árvore', 'Espécie', 'Qtd.', 'Posição']] :
+                                    [['Árvore', 'Espécie', 'Qtd.', 'Posição', 'Altura (m)', 'CAP (cm)']];
+
+                const tableRows = arvoresParaPdf.map(arvore => {
+                    if (servicoSelecionado === 'Plantio') {
+                        return [
+                            `Árvore ${arvore.numero}`,
+                            arvore.especie,
+                            arvore.quantidade,
+                            arvore.posicao
+                        ];
+                    } else {
+                        return [
+                            `Árvore ${arvore.numero}`,
+                            arvore.especie,
+                            arvore.quantidade,
+                            arvore.posicao,
+                            arvore.altura, // Already includes "N/A" if empty
+                            arvore.cap // Already includes "N/A" if empty
+                        ];
+                    }
+                });
+
+                doc.autoTable({
+                    startY: y,
+                    head: tableHead,
+                    body: tableRows,
+                    theme: 'grid',
+                    styles: { fontSize: 9, cellPadding: 2 },
+                    headStyles: { fillColor: [46, 125, 50], textColor: [255, 255, 255], fontStyle: 'bold' },
+                    columnStyles: {
+                        0: { cellWidth: 20 },
+                        1: { cellWidth: 'auto' },
+                        2: { cellWidth: 15 },
+                        3: { cellWidth: 25 },
+                        4: { cellWidth: 20 },
+                        5: { cellWidth: 20 }
+                    },
+                    margin: { left: marginX, right: marginX },
+                    didDrawPage: (data) => {
+                        addFooter(doc, responsavelTecnico, dataFormatada);
+                    }
+                });
+                y = doc.autoTable.previous.finalY + 3;
+
+                // Loop para detalhes de cada árvore
+                for (const arvore of arvoresParaPdf) {
+                    y += 5;
+                    let estimatedDetailHeight = 0;
+
+                    // Calcula a altura estimada para os detalhes da árvore para verificar quebra de página
+                    if (servicoSelecionado === 'Plantio') {
+                        // Apenas Abertura de Área Livre e Largura da Calçada para Plantio
+                        const aberturaAreaLivre = get("aberturaAreaLivre");
+                        const larguraCalcada = get("larguraCalcada");
+                        if (aberturaAreaLivre) estimatedDetailHeight += 8; // Linha para Abertura de Área Livre
+                        if (larguraCalcada) estimatedDetailHeight += 8; // Linha para Largura da Calçada
+                        estimatedDetailHeight += 10; // Espaço extra
+                    } else { // Diagnóstico e Indicação para outros serviços
+                        if (arvore.diagnoses && arvore.diagnoses.length > 0) estimatedDetailHeight += arvore.diagnoses.length * 4;
+                        if (arvore.indications && arvore.indications.length > 0) estimatedDetailHeight += arvore.indications.length * 4;
+                        estimatedDetailHeight += 10; // Para os títulos de Diagnóstico/Indicação
+                    }
+
+                    if (arvore.obsArvore.trim() !== "") {
+                        const obsSplitted = doc.splitTextToSize(arvore.obsArvore, pageWidth - (2 * marginX) - 10);
+                        estimatedDetailHeight += obsSplitted.length * 4 + 5; // Altura da obs + título
+                    }
+
+                    estimatedDetailHeight += 15; // Espaço extra
+
+                    if (y + estimatedDetailHeight > pageHeight - marginYBottom) {
+                        doc.addPage();
+                        y = marginYTop;
+                        addFooter(doc, responsavelTecnico, dataFormatada);
+                    }
+
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor("#2e7d32");
+                    doc.setFontSize(11);
+                    doc.text(`Árvore ${arvore.numero} - Detalhes:`, marginX, y);
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(9); // Voltando para tamanho normal de texto para os detalhes
+                    y += 5;
+
+                    // ADICIONA CAMPOS DE PLANTIO DENTRO DOS DETALHES DA ÁRVORE (SE FOR PLANTIO)
+                    if (servicoSelecionado === 'Plantio') {
+                        const aberturaAreaLivre = get("aberturaAreaLivre");
+                        const larguraCalcada = get("larguraCalcada");
+
+                        if (aberturaAreaLivre) {
+                            doc.setFont('helvetica', 'bold');
+                            doc.setTextColor("#2e7d32");
+                            doc.text("Abertura de Área Livre:", marginX + 5, y);
+                            doc.setTextColor(0, 0, 0);
+                            doc.setFont('helvetica', 'normal');
+                            doc.text(aberturaAreaLivre, marginX + 10, y + 4);
+                            y += 8;
+                        }
+                        if (larguraCalcada !== "") { // Check for empty string, not just truthiness for 0
+                            doc.setFont('helvetica', 'bold');
+                            doc.setTextColor("#2e7d32");
+                            doc.text("Largura da Calçada:", marginX + 5, y);
+                            doc.setTextColor(0, 0, 0);
+                            doc.setFont('helvetica', 'normal');
+                            doc.text(`${larguraCalcada} m`, marginX + 10, y + 4);
+                            y += 8;
+                        }
+                        y += 3; // Espaçamento após os campos de plantio, se existirem
+                    } else { // ADICIONA DIAGNÓSTICO E INDICAÇÃO PARA OUTROS SERVIÇOS
+                        doc.setFont('helvetica', 'bold');
+                        doc.setTextColor("#2e7d32");
+                        doc.text("Diagnóstico:", marginX + 5, y);
+                        doc.setTextColor(0, 0, 0);
+                        doc.setFont('helvetica', 'normal');
+                        y += 4;
+                        if (arvore.diagnoses && arvore.diagnoses.length > 0) {
+                            for (const diag of arvore.diagnoses) {
+                                const line = `- ${diag}`;
+                                const diagSplitted = doc.splitTextToSize(line, pageWidth - (2 * marginX) - 10);
+                                doc.text(diagSplitted, marginX + 10, y);
+                                y += diagSplitted.length * (doc.getLineHeight() / doc.internal.scaleFactor);
+                            }
+                        } else {
+                            doc.text("Nenhum diagnóstico selecionado.", marginX + 10, y);
+                            y += 4;
+                        }
+                        y += 3;
+
+                        doc.setFont('helvetica', 'bold');
+                        doc.setTextColor("#2e7d32");
+                        doc.text("Indicação:", marginX + 5, y);
+                        doc.setTextColor(0, 0, 0);
+                        doc.setFont('helvetica', 'normal');
+                        y += 4;
+                        if (arvore.indications && arvore.indications.length > 0) {
+                            for (const indic of arvore.indications) {
+                                const line = `- ${indic}`;
+                                const indicSplitted = doc.splitTextToSize(line, pageWidth - (2 * marginX) - 10);
+                                doc.text(indicSplitted, marginX + 10, y);
+                                y += indicSplitted.length * (doc.getLineHeight() / doc.internal.scaleFactor);
+                            }
+                        } else {
+                            doc.text("Nenhuma indicação selecionada.", marginX + 10, y);
+                            y += 4;
+                        }
+                        y += 3;
+                    }
+
+                    const obsArvoreContent = arvore.obsArvore.trim();
+                    if (obsArvoreContent !== "") {
+                        doc.setFont('helvetica', 'bold');
+                        doc.setTextColor("#2e7d32");
+                        doc.text("Obs:", marginX + 5, y);
+                        doc.setTextColor(0, 0, 0);
+                        doc.setFont('helvetica', 'normal');
+                        y += 4;
+                        const obsSplitted = doc.splitTextToSize(obsArvoreContent, pageWidth - (2 * marginX) - 10);
+                        doc.text(obsSplitted, marginX + 10, y);
+                        y += obsSplitted.length * (doc.getLineHeight() / doc.internal.scaleFactor);
+                        y += 3;
+                    }
+                    y += 5;
+                }
+            } else {
+                y += 7;
+                if (y + 20 > pageHeight - marginYBottom) {
+                    doc.addPage();
+                    y = marginYTop;
+                    addFooter(doc, responsavelTecnico, dataFormatada);
+                }
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor("#2e7d32");
+                doc.setFontSize(12);
+                // Título condicional da seção de árvores
+                doc.text(servicoSelecionado === 'Plantio' ? "Árvore(s) indicada(s) para plantio:" : "Informações das Árvores:", marginX, y);
+                doc.setTextColor(0, 0, 0);
+                doc.setFont('helvetica', 'normal');
+                y += 5;
+                doc.setFontSize(10);
+                doc.text("Nenhuma árvore cadastrada.", marginX, y);
+                y += 10;
+            }
+
+            doc.line(marginX, y - 2, pageWidth - marginX, y - 2);
+            y += 5;
+
+            // --- Localização (Mapa) ---
+            if (mapa && document.getElementById('mapaInterativo') && latGlobal && lngGlobal) {
+                console.log("📸 Tentando capturar o mapa interativo com html2canvas...");
+                const mapContainer = document.getElementById('mapaInterativo');
+                try {
+                    mapa.invalidateSize();
+
+                    const canvas = await html2canvas(mapContainer, {
+                        useCORS: true,
+                        allowTaint: true
+                    });
+                    const mapaDataUrl = canvas.toDataURL('image/png');
+
+                    const estimatedMapHeight = (mapContainer.offsetHeight / mapContainer.offsetWidth) * (pageWidth - (2 * marginX)) + 20;
+                    if (y + estimatedMapHeight > pageHeight - marginYBottom) {
+                        doc.addPage();
+                        y = marginYTop;
+                        addFooter(doc, responsavelTecnico, dataFormatada);
+                    }
+
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor("#2e7d32");
+                    doc.setFontSize(12);
+                    doc.text("Localização:", marginX, y);
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFont('helvetica', 'normal');
+                    y += 5;
+
+                    const imgWidth = pageWidth - (2 * marginX);
+                    const imgHeight = (mapContainer.offsetHeight / mapContainer.offsetWidth) * imgWidth;
+                    doc.addImage(mapaDataUrl, "PNG", marginX, y, imgWidth, imgHeight);
+                    y += imgHeight + 5;
+
+                    console.log("✅ Mapa capturado.");
+                } catch (error) {
+                    console.error("❌ Erro ao capturar o mapa com html2canvas:", error);
+                    if (y + 20 > pageHeight - marginYBottom) {
+                        doc.addPage();
+                        y = marginYTop;
+                        addFooter(doc, responsavelTecnico, dataFormatada);
+                    }
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor("#2e7d32");
+                    doc.setFontSize(12);
+                    doc.text("Localização:", marginX, y);
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFont('helvetica', 'normal');
+                    y += 8;
+                    doc.setFontSize(9);
+                    doc.text("Não foi possível carregar o mapa.", marginX, y);
+                    y += 10;
+                }
+            } else {
+                if (y + 20 > pageHeight - marginYBottom) {
+                    doc.addPage();
+                    y = marginYTop;
+                    addFooter(doc, responsavelTecnico, dataFormatada);
+                }
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor("#2e7d32");
+                doc.setFontSize(12);
+                doc.text("Localização:", marginX, y);
+                doc.setTextColor(0, 0, 0);
+                doc.setFont('helvetica', 'normal');
+                y += 8;
+                doc.setFontSize(9);
+                doc.text("Localização não disponível.", marginX, y);
+                y += 10;
+            }
+
+            // --- REGISTRO FOTOGRÁFICO (FORÇA NOVA PÁGINA) ---
+            doc.addPage();
+            addFooter(doc, responsavelTecnico, dataFormatada);
+
+            doc.setFontSize(16);
+            doc.text("REGISTRO FOTOGRÁFICO", pageWidth / 2, marginYTop, { align: "center" });
+
+            doc.line(marginX, marginYTop + 8, pageWidth - marginX, marginYTop + 8);
+
+            const fotos = ['foto1', 'foto2', 'foto3', 'foto4'];
+            let fotoW = (pageWidth - (3 * marginX)) / 2;
+            let fotoH = (fotoW * 0.75);
+            let currentPhotoY_photos = marginYTop + 20;
+
+            for (let i = 0; i < fotos.length; i++) {
+                const id = fotos[i];
+                const fileInput = document.getElementById(id);
+                if (fileInput && fileInput.files && fileInput.files[0]) {
+                    const file = fileInput.files[0];
+                    let imageDataUrl = null;
+                    try {
+                        imageDataUrl = await compressImage(file);
+                    } catch (error) {
+                        console.warn(`⚠️ Erro ao comprimir foto ${id}. Tentando sem compressão.`, error);
+                        try {
+                            imageDataUrl = await new Promise((resolve, reject) => {
+                                const reader = new FileReader();
+                                reader.onload = (e) => resolve(e.target.result);
+                                reader.onerror = reject;
+                                reader.readAsDataURL(file);
+                            });
+                        } catch (readError) {
+                            console.error(`❌ Erro fatal ao carregar foto ${id}:`, readError);
+                            imageDataUrl = null;
+                        }
+                    }
+
+                    if (imageDataUrl) {
+                        const col = i % 2;
+                        let posX = marginX + col * (fotoW + marginX);
+
+                        const photoBlockHeight = fotoH + 15;
+
+                        if (col === 0 && (currentPhotoY_photos + photoBlockHeight > pageHeight - marginYBottom)) {
+                            doc.addPage();
+                            addFooter(doc, responsavelTecnico, dataFormatada);
+                            doc.setFontSize(16);
+                            doc.text("REGISTRO FOTOGRÁFICO (Continuação)", pageWidth / 2, marginYTop, { align: "center" });
+                            doc.line(marginX, marginYTop + 8, pageWidth - marginX, marginYTop + 8);
+                            currentPhotoY_photos = marginYTop + 20;
+                        }
+
+                        doc.addImage(imageDataUrl, "JPEG", posX, currentPhotoY_photos, fotoW, fotoH);
+                        doc.setFontSize(9);
+                        doc.text(`Foto ${i + 1}`, posX + fotoW / 2, currentPhotoY_photos + fotoH + 5, { align: "center" });
+                        doc.setFontSize(12);
+
+                        if (col === 1) {
+                             currentPhotoY_photos += fotoH + 25;
+                        }
+                    } else {
+                        console.warn(`Foto ${id} não pôde ser processada e não foi adicionada ao PDF.`);
+                    }
+                }
+            }
+            console.log("🖼️ Todas as fotos foram processadas.");
+            console.log("✅ PDF gerado com sucesso.");
+
+            doc.save(`relatorio_${numeroRelatorio.replace('/', '-')}.pdf`);
+        }
+
+        // Event Listener para o formulário
+        document.getElementById("formRelatorio").addEventListener("submit", async function(e) {
+            e.preventDefault();
+
+            const btn = document.getElementById('btnGerarPdf');
+            const loadingMsg = document.getElementById('loadingMessage');
+
+            const servicoSelecionado = document.getElementById('servico').value;
+            let allFieldsValid = true; // Flag geral de validação
+
+            // Validação dos campos de Plantio específicos, se o serviço for Plantio
+            if (servicoSelecionado === 'Plantio') {
+                const aberturaAreaLivre = document.getElementById('aberturaAreaLivre').value;
+                const larguraCalcada = document.getElementById('larguraCalcada').value;
+
+                if (!aberturaAreaLivre) {
+                    alert("Por favor, selecione uma opção para 'Abertura de Área Livre'.");
+                    document.getElementById('aberturaAreaLivre').focus();
+                    allFieldsValid = false;
+                } else if (larguraCalcada === "") { // Largura pode ser 0, mas não vazia
+                    alert("Por favor, insira a 'Largura da Calçada'. Use 0 se não aplicável.");
+                    document.getElementById('larguraCalcada').focus();
+                    allFieldsValid = false;
+                }
+            }
+
+            if (!allFieldsValid) {
+                return; // Impede a continuação se os novos campos de plantio não estiverem preenchidos
+            }
+
+            // Validação dos campos de árvore dinamicamente
+            let allArvoreFieldsFilled = true;
+            const isPlantio = (servicoSelecionado === 'Plantio');
+
+            if (servicoSelecionado !== '') {
+                const arvoreItems = document.querySelectorAll('.arvore-item');
+                if (arvoreItems.length === 0) {
+                     alert("Por favor, adicione e preencha as informações de pelo menos uma árvore.");
+                     return;
+                }
+                arvoreItems.forEach(item => {
+                    const arvoreNumId = item.id.split('-')[1];
+                    const especie = item.querySelector(`#especie-${arvoreNumId}`).value;
+                    const quantidade = item.querySelector(`#quantidade-${arvoreNumId}`).value;
+                    const posicao = item.querySelector(`#posicao-${arvoreNumId}`).value;
+
+                    let altura = "";
+                    if (!isPlantio) {
+                        altura = item.querySelector(`#altura-${arvoreNumId}`).value;
+                    }
+                    // CAP is now optional, so no need to check here
+
+                    let currentTreeFieldsValid = true;
+                    if (!especie || quantidade === "" || !posicao) {
+                        currentTreeFieldsValid = false;
+                    }
+                    if (!isPlantio && altura === "") { // Only height is required for non-plantio services
+                        currentTreeFieldsValid = false;
+                    }
+
+                    if (!currentTreeFieldsValid) {
+                        allArvoreFieldsFilled = false;
+                        item.style.border = '2px solid red';
+                    } else {
+                        item.style.border = '1px solid #e0e0e0';
+                    }
+                });
+            }
+
+            if (!allArvoreFieldsFilled) {
+                alert("Por favor, preencha todos os campos obrigatórios das árvores.");
+                return;
+            }
+
+            // --- VALIDAÇÃO CONDICIONAL PARA O CAMPO DE REFERÊNCIA (NÚMERO) ---
+            const numeroRef = document.getElementById('numeroReferencia').value.trim();
+            const tipoRef = document.getElementById('tipoReferencia').value;
+
+            if (tipoRef !== "Demanda Interna" && numeroRef === "") {
+                alert(`Por favor, digite o número para ${tipoRef}.`);
+                document.getElementById('numeroReferencia').focus();
+                return;
+            }
+
+            if (!this.checkValidity()) {
+                alert("Por favor, preencha todos os campos obrigatórios.");
+                return;
+            }
+
+
+            btn.disabled = true;
+            loadingMsg.style.display = 'block';
+
+            try {
+                await gerarPDF();
+                document.getElementById("numero").value = getNextReportNumber();
+
+            } catch (error) {
+                console.error("Erro geral ao gerar PDF:", error);
+                alert("Ocorreu um erro ao gerar o PDF. Verifique o console para mais detalhes.");
+            } finally {
+                btn.disabled = false;
+                loadingMsg.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
