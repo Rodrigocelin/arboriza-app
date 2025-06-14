@@ -10,42 +10,58 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <style>
-        /* Estilos CSS */
+        /* Estilos CSS Base */
         body {
             font-family: Arial, sans-serif;
             max-width: 800px;
             margin: auto;
             padding: 20px;
             background: #f9f9f9;
+            color: #333;
+            line-height: 1.6;
+            box-sizing: border-box; /* Garante que padding e border sejam incluídos na largura/altura */
+            min-width: 320px; /* Garante que a página não fique muito pequena */
         }
         h1 {
             text-align: center;
             margin-bottom: 20px;
             color: #2e7d32;
+            font-size: 1.8em;
         }
         label {
             font-weight: bold;
             display: block;
-            margin-top: 12px;
+            margin-top: 15px; /* Aumenta um pouco o espaçamento */
+            margin-bottom: 5px;
         }
         input, textarea, select {
             width: 100%;
-            padding: 8px;
+            padding: 10px; /* Aumenta o padding para melhor toque */
             margin-top: 4px;
-            border-radius: 4px;
+            border-radius: 6px; /* Bordas mais arredondadas */
             border: 1px solid #ccc;
             font-size: 1rem;
             box-sizing: border-box;
+            transition: border-color 0.3s ease; /* Transição suave na borda */
+        }
+        input:focus, textarea:focus, select:focus {
+            border-color: #43a047; /* Destaca a borda ao focar */
+            outline: none;
         }
         button {
-            margin-top: 16px;
-            padding: 10px 16px;
-            font-size: 1rem;
+            margin-top: 20px; /* Aumenta o espaçamento */
+            padding: 12px 20px; /* Aumenta o padding para melhor toque */
+            font-size: 1.1rem; /* Fonte um pouco maior */
             background: #43a047;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px; /* Bordas mais arredondadas */
             cursor: pointer;
+            transition: background 0.3s ease; /* Transição suave no hover */
+            display: block; /* Garante que o botão ocupe sua própria linha */
+            width: auto; /* Permite que o botão se ajuste ao conteúdo */
+            margin-left: auto; /* Centraliza o botão */
+            margin-right: auto; /* Centraliza o botão */
         }
         button:hover {
             background: #2e7d32;
@@ -55,37 +71,48 @@
             cursor: not-allowed;
         }
         .voice-button {
-            margin-top: 5px;
-            margin-bottom: 10px;
+            margin-top: 8px; /* Ajusta o espaçamento do botão de voz */
+            margin-bottom: 15px;
             display: inline-block;
             width: auto;
+            padding: 8px 12px; /* Padding menor para botões menores */
+            font-size: 0.9em;
+            background: #007bff; /* Cor diferente para diferenciar */
         }
+        .voice-button:hover {
+            background: #0056b3;
+        }
+
         #mapaInterativo {
-            height: 300px;
+            height: 350px; /* Altura padrão para desktop */
             width: 100%;
-            margin-top: 10px;
+            margin-top: 15px;
             border: 1px solid #ccc;
-            border-radius: 4px;
+            border-radius: 8px; /* Bordas mais arredondadas */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Sombra suave */
         }
         .preview-fotos {
             display: flex;
-            gap: 10px;
-            margin-top: 10px;
-            flex-wrap: wrap;
+            gap: 15px; /* Aumenta o espaçamento entre as fotos */
+            margin-top: 15px;
+            flex-wrap: wrap; /* Garante que as fotos quebrem a linha */
+            justify-content: center; /* Centraliza as fotos */
         }
         .preview-fotos img {
-            width: 100px;
-            height: 75px;
+            width: 120px; /* Tamanho ligeiramente maior para desktop */
+            height: 90px;
             object-fit: cover;
-            border-radius: 4px;
+            border-radius: 6px;
             border: 1px solid #ccc;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         #loadingMessage, #loadingLocation {
             display: none;
             color: #43a047;
-            margin-top: 10px;
+            margin-top: 15px;
             text-align: center;
             font-weight: bold;
+            font-size: 1.1em;
         }
         #loadingLocation {
             text-align: left;
@@ -95,26 +122,30 @@
         /* Estilos adicionais para os blocos de árvores */
         .arvore-item {
             border: 1px solid #e0e0e0;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 8px;
+            padding: 20px; /* Aumenta o padding */
+            margin-bottom: 20px; /* Aumenta o espaçamento */
+            border-radius: 10px; /* Bordas mais arredondadas */
             background-color: #ffffff;
             position: relative;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08); /* Sombra mais pronunciada */
         }
         .arvore-item h3 {
             margin-top: 0;
             color: #2e7d32;
-            font-size: 1.1em;
-            margin-bottom: 10px;
+            font-size: 1.2em; /* Fonte um pouco maior */
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0; /* Linha divisória */
+            padding-bottom: 10px;
         }
         .arvore-item .remove-arvore {
             background-color: #d32f2f;
             position: absolute;
-            top: 10px;
-            right: 10px;
-            padding: 5px 10px;
-            font-size: 0.8em;
+            top: 15px; /* Ajusta a posição */
+            right: 15px; /* Ajusta a posição */
+            padding: 8px 15px; /* Aumenta o padding */
+            font-size: 0.9em;
             margin-top: 0;
+            border-radius: 5px;
         }
         .arvore-item .remove-arvore:hover {
             background-color: #b71c1c;
@@ -122,45 +153,54 @@
 
         /* Estilos para os campos de seleção/adição dinâmica (Diagnóstico e Indicação) */
         .selected-tags-container {
-            margin-top: 10px;
+            margin-top: 15px; /* Aumenta o espaçamento */
             border: 1px dashed #ccc;
             padding: 10px;
-            border-radius: 4px;
-            min-height: 50px; /* Garante que a caixa seja visível mesmo vazia */
+            border-radius: 8px; /* Bordas mais arredondadas */
+            min-height: 60px; /* Garante que a caixa seja visível mesmo vazia */
+            background-color: #fcfcfc;
         }
         .tag-item {
             display: inline-block;
             background-color: #e0e0e0;
-            padding: 5px 10px;
-            margin: 5px;
-            border-radius: 15px;
-            font-size: 0.9em;
-            white-space: nowrap; /* Impede que o texto quebre */
+            padding: 8px 12px; /* Aumenta o padding */
+            margin: 6px; /* Aumenta o espaçamento */
+            border-radius: 20px; /* Mais arredondado */
+            font-size: 0.95em;
+            white-space: nowrap;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
         .tag-item button {
             background: none;
             border: none;
             color: #d32f2f;
             font-weight: bold;
-            margin-left: 5px;
+            margin-left: 8px; /* Aumenta o espaçamento */
             padding: 0;
             cursor: pointer;
-            font-size: 1em;
-            line-height: 1; /* Alinha o "x" verticalmente */
-            vertical-align: middle; /* Ajuda a alinhar com o texto */
-            margin-top: -2px; /* Pequeno ajuste visual */
+            font-size: 1.1em;
+            line-height: 1;
+            vertical-align: middle;
+            margin-top: -2px;
         }
         .tag-item button:hover {
             color: #b71c1c;
-            background: none; /* Garantir que o hover não mude o fundo */
+            background: none;
         }
         .add-section {
             display: flex;
-            align-items: flex-end; /* Alinha o botão com a parte inferior do select */
+            align-items: flex-end;
             gap: 10px;
+            margin-top: 10px;
         }
         .add-section select {
-            flex-grow: 1; /* Permite que o select ocupe o espaço disponível */
+            flex-grow: 1;
+        }
+        .add-section button {
+            margin-top: 0; /* Remove margin-top extra */
+            padding: 10px 15px; /* Ajusta padding */
+            font-size: 0.95em;
+            white-space: nowrap;
         }
 
         /* Classe para ocultar campos no modo Plantio */
@@ -171,11 +211,116 @@
         /* Nova classe para controlar a visibilidade dos campos específicos de Plantio */
         .plantio-fields-container {
             display: none; /* Oculto por padrão */
-            border: 1px dashed #ccc;
-            padding: 15px;
-            margin-top: 15px;
-            border-radius: 8px;
-            background-color: #f0f8f0; /* Um fundo levemente verde */
+            border: 1px dashed #a5d6a7; /* Borda mais verde */
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 10px;
+            background-color: #e8f5e9; /* Um fundo verde mais suave */
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        /* Estilos para o grupo de referência */
+        .reference-group {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+            flex-wrap: wrap; /* Permite que os itens quebrem a linha em telas pequenas */
+        }
+        .reference-group select, .reference-group input {
+            flex-grow: 1;
+            min-width: 150px; /* Garante um tamanho mínimo em telas pequenas */
+        }
+
+
+        /* Media Queries para Responsividade */
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+            h1 {
+                font-size: 1.6em;
+            }
+            label {
+                margin-top: 10px;
+            }
+            input, textarea, select {
+                padding: 8px;
+                font-size: 0.95rem;
+            }
+            button {
+                padding: 10px 15px;
+                font-size: 1rem;
+            }
+            .voice-button {
+                padding: 6px 10px;
+                font-size: 0.85em;
+            }
+            #mapaInterativo {
+                height: 250px; /* Altura menor para mobile */
+                margin-top: 10px;
+            }
+            .preview-fotos {
+                gap: 10px;
+            }
+            .preview-fotos img {
+                width: 90px;
+                height: 67px;
+            }
+            .arvore-item {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+            .arvore-item h3 {
+                font-size: 1.1em;
+                margin-bottom: 10px;
+                padding-bottom: 8px;
+            }
+            .arvore-item .remove-arvore {
+                padding: 6px 12px;
+                font-size: 0.75em;
+                top: 10px;
+                right: 10px;
+            }
+            .selected-tags-container {
+                min-height: 40px;
+                padding: 8px;
+            }
+            .tag-item {
+                padding: 6px 10px;
+                margin: 4px;
+                font-size: 0.85em;
+            }
+            .tag-item button {
+                font-size: 1em;
+            }
+            .add-section button {
+                padding: 8px 12px;
+                font-size: 0.85em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            h1 {
+                font-size: 1.4em;
+            }
+            .reference-group {
+                flex-direction: column; /* Empilha select e input em telas muito pequenas */
+                align-items: stretch;
+            }
+            .reference-group select, .reference-group input {
+                min-width: unset; /* Remove min-width para flexibilidade total */
+            }
+            .preview-fotos img {
+                width: 80px;
+                height: 60px;
+            }
+            .add-section {
+                flex-direction: column; /* Empilha select e button */
+                align-items: stretch;
+            }
         }
     </style>
 </head>
@@ -183,15 +328,15 @@
     <h1>RELATÓRIO TÉCNICO</h1>
     <form id="formRelatorio">
         <label>Ref.:</label>
-        <div style="display: flex; gap: 10px; align-items: flex-end;">
-            <select id="tipoReferencia" style="flex-grow: 0; width: auto;">
+        <div class="reference-group">
+            <select id="tipoReferencia">
                 <option value="Processo">Processo</option>
                 <option value="SIC">SIC</option>
                 <option value="Protocolo">Protocolo</option>
                 <option value="Demanda Interna">Demanda Interna</option>
                 <option value="Indicação">Indicação</option>
             </select>
-            <input type="text" id="numeroReferencia" placeholder="Número da referência" style="flex-grow: 1;" />
+            <input type="text" id="numeroReferencia" placeholder="Número da referência" />
         </div>
 
         <label for="numero">Relatório Nº.:</label>
@@ -228,7 +373,7 @@
         </div>
 
         <div id="arvoresContainer">
-            </div>
+        </div>
 
         <button type="button" id="btnAddArvore" style="margin-bottom: 20px;">+ Adicionar Árvore</button>
 
@@ -878,8 +1023,6 @@
                 ['Endereço:', get("endereco")]
             ];
 
-            // Campos de Plantio removidos da tabela principal aqui
-
             doc.autoTable({
                 startY: y,
                 body: mainTableBody,
@@ -891,16 +1034,16 @@
                 },
                 columnStyles: {
                     0: {
-                        cellWidth: 'auto',
+                        cellWidth: 25, // Reduzido o cellWidth da primeira coluna
                         fontStyle: 'bold',
                         textColor: [46, 125, 50],
                         halign: 'left',
-                        cellPadding: { left: 0, right: 0, top: 0.5, bottom: 0.5 }
+                        cellPadding: { left: 0, right: 0, top: 0, bottom: 0 }
                     },
                     1: {
-                        cellWidth: 'auto',
+                        cellWidth: 'auto', // Permite que a segunda coluna ocupe o restante do espaço
                         halign: 'left',
-                        cellPadding: { left: 0, right: 0, top: 0.5, bottom: 0.5 }
+                        cellPadding: { left: 0, right: 0, top: 0, bottom: 0 }
                     }
                 },
                 margin: { left: marginX, right: marginX },
@@ -1234,8 +1377,10 @@
             doc.line(marginX, marginYTop + 8, pageWidth - marginX, marginYTop + 8);
 
             const fotos = ['foto1', 'foto2', 'foto3', 'foto4'];
-            let fotoW = (pageWidth - (3 * marginX)) / 2;
-            let fotoH = (fotoW * 0.75);
+            // Ajustando a largura da foto para duas colunas com margens e espaçamento
+            let photoColumnWidth = (pageWidth - (3 * marginX)) / 2; // (largura_total - 2*margem_laterais - espacamento_entre_fotos) / 2
+            let photoAspectRatio = 0.75; // Assumindo 4:3 (height = width * 0.75)
+            let photoHeight = photoColumnWidth * photoAspectRatio;
             let currentPhotoY_photos = marginYTop + 20;
 
             for (let i = 0; i < fotos.length; i++) {
@@ -1263,26 +1408,27 @@
 
                     if (imageDataUrl) {
                         const col = i % 2;
-                        let posX = marginX + col * (fotoW + marginX);
+                        let posX = marginX + col * (photoColumnWidth + marginX);
 
-                        const photoBlockHeight = fotoH + 15;
+                        const photoBlockTotalHeight = photoHeight + 15; // Altura da foto + espaço para legenda
 
-                        if (col === 0 && (currentPhotoY_photos + photoBlockHeight > pageHeight - marginYBottom)) {
+                        // Verifica se a próxima foto (ou par de fotos) cabe na página
+                        if (col === 0 && (currentPhotoY_photos + photoBlockTotalHeight > pageHeight - marginYBottom)) {
                             doc.addPage();
                             addFooter(doc, responsavelTecnico, dataFormatada);
                             doc.setFontSize(16);
                             doc.text("REGISTRO FOTOGRÁFICO (Continuação)", pageWidth / 2, marginYTop, { align: "center" });
                             doc.line(marginX, marginYTop + 8, pageWidth - marginX, marginYTop + 8);
-                            currentPhotoY_photos = marginYTop + 20;
+                            currentPhotoY_photos = marginYTop + 20; // Reinicia Y para nova página
                         }
 
-                        doc.addImage(imageDataUrl, "JPEG", posX, currentPhotoY_photos, fotoW, fotoH);
+                        doc.addImage(imageDataUrl, "JPEG", posX, currentPhotoY_photos, photoColumnWidth, photoHeight);
                         doc.setFontSize(9);
-                        doc.text(`Foto ${i + 1}`, posX + fotoW / 2, currentPhotoY_photos + fotoH + 5, { align: "center" });
-                        doc.setFontSize(12);
+                        doc.text(`Foto ${i + 1}`, posX + photoColumnWidth / 2, currentPhotoY_photos + photoHeight + 5, { align: "center" });
 
                         if (col === 1) {
-                             currentPhotoY_photos += fotoH + 25;
+                             // Após a segunda foto na linha, avança para a próxima linha
+                             currentPhotoY_photos += photoHeight + 25; // Espaço entre as linhas de fotos
                         }
                     } else {
                         console.warn(`Foto ${id} não pôde ser processada e não foi adicionada ao PDF.`);
@@ -1403,3 +1549,4 @@
     </script>
 </body>
 </html>
+
