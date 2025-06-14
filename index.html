@@ -1163,9 +1163,9 @@
                     if (servicoSelecionado === 'Plantio') {
                         // Apenas Abertura de Área Livre e Largura da Calçada para Plantio
                         const aberturaAreaLivre = get("aberturaAreaLivre");
-                        const larguraCalcada = get("larguraCalcada");
+                        const larguraCalcada = get("aberturaAreaLivre"); // Pega o valor do elemento correto
                         if (aberturaAreaLivre) estimatedDetailHeight += 8; // Linha para Abertura de Área Livre
-                        if (larguraCalcada) estimatedDetailHeight += 8; // Linha para Largura da Calçada
+                        if (larguraCalcada !== "") estimatedDetailHeight += 8; // Linha para Largura da Calçada
                         estimatedDetailHeight += 10; // Espaço extra
                     } else { // Diagnóstico e Indicação para outros serviços
                         if (arvore.diagnoses && arvore.diagnoses.length > 0) estimatedDetailHeight += arvore.diagnoses.length * 4;
@@ -1301,6 +1301,8 @@
             if (mapa && document.getElementById('mapaInterativo') && latGlobal && lngGlobal) {
                 console.log("📸 Tentando capturar o mapa interativo com html2canvas...");
                 const mapContainer = document.getElementById('mapaInterativo');
+                const maxMapHeightPdf = 70; // Altura máxima desejada para o mapa no PDF
+
                 try {
                     mapa.invalidateSize();
 
@@ -1310,8 +1312,17 @@
                     });
                     const mapaDataUrl = canvas.toDataURL('image/png');
 
-                    const estimatedMapHeight = (mapContainer.offsetHeight / mapContainer.offsetWidth) * (pageWidth - (2 * marginX)) + 20;
-                    if (y + estimatedMapHeight > pageHeight - marginYBottom) {
+                    // Calcula a altura da imagem proporcionalmente à largura disponível no PDF
+                    const imgWidth = pageWidth - (2 * marginX);
+                    let imgHeight = (mapContainer.offsetHeight / mapContainer.offsetWidth) * imgWidth;
+                    
+                    // Limita a altura da imagem do mapa para caber melhor na página
+                    imgHeight = Math.min(imgHeight, maxMapHeightPdf);
+
+                    // Estima a altura do bloco do mapa para a verificação de quebra de página
+                    const estimatedMapBlockHeight = imgHeight + 20; // Altura da imagem + espaço para título e margem
+
+                    if (y + estimatedMapBlockHeight > pageHeight - marginYBottom) {
                         doc.addPage();
                         y = marginYTop;
                         addFooter(doc, responsavelTecnico, dataFormatada);
@@ -1325,8 +1336,6 @@
                     doc.setFont('helvetica', 'normal');
                     y += 5;
 
-                    const imgWidth = pageWidth - (2 * marginX);
-                    const imgHeight = (mapContainer.offsetHeight / mapContainer.offsetWidth) * imgWidth;
                     doc.addImage(mapaDataUrl, "PNG", marginX, y, imgWidth, imgHeight);
                     y += imgHeight + 5;
 
@@ -1549,4 +1558,5 @@
     </script>
 </body>
 </html>
+
 
