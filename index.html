@@ -82,6 +82,21 @@
         .voice-button:hover {
             background: #0056b3;
         }
+        /* Estilo para o novo botão de limpar campo de texto de observação da árvore */
+        .clear-obs-arvore-button {
+            margin-top: 8px;
+            margin-bottom: 15px;
+            display: inline-block;
+            width: auto;
+            padding: 8px 12px;
+            font-size: 0.9em;
+            background: #f0ad4e; /* Uma cor de aviso/limpeza */
+            margin-left: 10px; /* Espaçamento do botão de voz */
+        }
+        .clear-obs-arvore-button:hover {
+            background: #ec971f;
+        }
+
 
         #mapaInterativo {
             height: 350px; /* Altura padrão para desktop */
@@ -231,6 +246,21 @@
             min-width: 150px; /* Garante um tamanho mínimo em telas pequenas */
         }
 
+        /* Container para input e botão de voz para o campo Endereço */
+        .input-with-voice-button {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+        }
+        .input-with-voice-button input {
+            flex-grow: 1;
+        }
+        .input-with-voice-button .voice-button {
+            margin-top: 0;
+            margin-bottom: 0;
+            flex-shrink: 0;
+        }
+
 
         /* Media Queries para Responsividade */
         @media (max-width: 768px) {
@@ -251,7 +281,7 @@
                 padding: 10px 15px;
                 font-size: 1rem;
             }
-            .voice-button {
+            .voice-button, .clear-obs-arvore-button { /* Aplica estilo aos dois botões na linha da obs da arvore */
                 padding: 6px 10px;
                 font-size: 0.85em;
             }
@@ -296,6 +326,10 @@
             .add-section button {
                 padding: 8px 12px;
                 font-size: 0.85em;
+            }
+            .input-with-voice-button {
+                flex-direction: column; /* Empilha input e button em telas muito pequenas */
+                align-items: stretch;
             }
         }
 
@@ -354,10 +388,98 @@
         </select>
 
         <label for="bairro">Bairro:</label>
-        <input type="text" id="bairro" required />
+        <!-- CAMPO BAIRRO AGORA COM DATALIST -->
+        <input type="text" id="bairro" list="listaBairros" required />
+        <datalist id="listaBairros">
+            <option value="Aeroporto"></option>
+            <option value="Alagoano"></option>
+            <option value="Andorinhas"></option>
+            <option value="Antônio Honório"></option>
+            <option value="Ariovaldo Favalessa"></option>
+            <option value="Barro Vermelho"></option>
+            <option value="Bela Vista"></option>
+            <option value="Bento Ferreira"></option>
+            <option value="Boa Vista"></option>
+            <option value="Bonfim"></option>
+            <option value="Caratoíra"></option>
+            <option value="Centro"></option>
+            <option value="Comdusa"></option>
+            <option value="Consolação"></option>
+            <option value="Conquista"></option>
+            <option value="Cruzamento"></option>
+            <option value="Da Penha"></option>
+            <option value="De Lourdes"></option>
+            <option value="Do Cabral"></option>
+            <option value="Do Moscoso"></option>
+            <option value="Do Quadro"></option>
+            <option value="Enseada do Suá"></option>
+            <option value="Estrelinha"></option>
+            <option value="Forte São João"></option>
+            <option value="Fonte Grande"></option>
+            <option value="Fradinhos"></option>
+            <option value="Goiabeiras"></option>
+            <option value="Grande Vitória"></option>
+            <option value="Gurigica"></option>
+            <option value="Horto"></option>
+            <option value="Ilha das Caieiras"></option>
+            <option value="Ilha de Santa Maria"></option>
+            <option value="Ilha do Boi"></option>
+            <option value="Ilha do Frade"></option>
+            <option value="Ilha do Príncipe"></option>
+            <option value="Inhanguetá"></option>
+            <option value="Itararé"></option>
+            <option value="Jabour"></option>
+            <option value="Jardim Camburi"></option>
+            <option value="Jardim da Penha"></option>
+            <option value="Jesus de Nazareth"></option>
+            <option value="Joana d'Arc"></option>
+            <option value="Jucutuquara"></option>
+            <option value="Maruípe"></option>
+            <option value="Maria Ortiz"></option>
+            <option value="Mário Cypreste"></option>
+            <option value="Mata da Praia"></option>
+            <option value="Monte Belo"></option>
+            <option value="Morada de Camburi"></option>
+            <option value="Nazareth"></option>
+            <option value="Nova Palestina"></option>
+            <option value="Parque Industrial"></option>
+            <option value="Parque Moscoso"></option>
+            <option value="Piedade"></option>
+            <option value="Pontal de Camburi"></option>
+            <option value="Praia do Canto"></option>
+            <option value="Praia do Suá"></option>
+            <option value="Redenção"></option>
+            <option value="República"></option>
+            <option value="Resistência"></option>
+            <option value="Romão"></option>
+            <option value="Santa Cecília"></option>
+            <option value="Santa Clara"></option>
+            <option value="Santa Helena"></option>
+            <option value="Santa Lúcia"></option>
+            <option value="Santa Luíza"></option>
+            <option value="Santa Martha"></option>
+            <option value="Santa Tereza"></option>
+            <option value="Santo André"></option>
+            <option value="Santo Antônio"></option>
+            <option value="Santos Dumont"></option>
+            <option value="Santos Reis"></option>
+            <option value="São Benedito"></option>
+            <option value="São Cristóvão"></option>
+            <option value="São José"></option>
+            <option value="São Pedro"></option>
+            <option value="Segurança do Lar"></option>
+            <option value="Solon Borges"></option>
+            <option value="Tabuazeiro"></option>
+            <option value="Universitário"></option>
+            <option value="Vila Rubim"></option>
+        </datalist>
+        <!-- FIM DO CAMPO BAIRRO COM DATALIST -->
 
         <label for="endereco">Endereço:</label>
-        <input type="text" id="endereco" required />
+        <div class="input-with-voice-button">
+            <input type="text" id="endereco" required />
+            <button type="button" onclick="transcreverVozParaTexto('endereco')" class="voice-button">🎤 Falar</button>
+        </div>
 
         <div id="plantioFieldsContainer" class="plantio-fields-container">
             <h3>Informações para Plantio</h3>
@@ -396,6 +518,8 @@
         <input type="date" id="dataFinal" required />
 
         <button type="submit" id="btnGerarPdf">Gerar PDF</button>
+        <!-- BOTÃO DE LIMPAR FORMULÁRIO COMPLETO (EXCETO Nº RELATÓRIO) -->
+        <button type="button" id="limparParaProximaArvoreBtn" style="background-color: #f44336; margin-left: 10px;">Limpar para Próxima Árvore</button>
         <div id="loadingMessage">Gerando PDF, aguarde...</div>
     </form>
 
@@ -415,7 +539,7 @@
             }
         }
 
-        // Função para transcrever voz para texto
+        // Função para transcrever voz para texto (campo obsArvore-${arvoreCounter} ou observacoesCampo)
         function transcreverVozParaTexto(idCampo) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SpeechRecognition) {
@@ -458,10 +582,12 @@
 
                 if (!mapa) {
                     mapa = L.map('mapaInterativo').setView([latGlobal, lngGlobal], 19);
+                    // Restaurando para OpenStreetMap
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                         attribution: '© OpenStreetMap contributors',
                         crossOrigin: true
                     }).addTo(mapa);
+                    
                     marcador = L.marker([latGlobal, lngGlobal]).addTo(mapa);
                 } else {
                     mapa.setView([latGlobal, lngGlobal], 19);
@@ -534,8 +660,8 @@
                 }
             }
 
-            // Atualiza o LocalStorage com o próximo número e o ano atual
-            localStorage.setItem('arborizaAppReportNumber', JSON.stringify({ number: reportNumber, year: currentYear }));
+            // A LINHA ABAIXO FOI REMOVIDA DAQUI E SERÁ CHAMADA SOMENTE APÓS A GERAÇÃO BEM SUCEDIDA DO PDF
+            // localStorage.setItem('arborizaAppReportNumber', JSON.stringify({ number: reportNumber, year: currentYear }));
 
             return `${reportNumber}/${currentYear}`;
         }
@@ -629,76 +755,81 @@
             arvoreDiv.id = currentTreeId;
             arvoreDiv.classList.add('arvore-item');
 
-            let especiesOptions = `
-                <option value="">Selecione a Espécie</option>
-                <option value="Ipê Roxo">Ipê Roxo</option>
-                <option value="Ipê Amarelo">Ipê Amarelo</option>
-                <option value="Ipê Branco">Ipê Branco</option>
-                <option value="Flamboyant">Flamboyant</option>
-                <option value="Sibipiruna">Sibipiruna</option>
-                <option value="Quaresmeira">Quaresmeira</option>
-                <option value="Cajueiro">Cajueiro</option>
-                <option value="Mangueira">Mangueira</option>
-                <option value="Oiti">Oiti</option>
-                <option value="Flor de Rainha">Flor de Rainha</option>
-                <option value="Jangada do Campo">Jangada do Campo</option>
-                <option value="Ipê Rosa">Ipê Rosa</option>
-                <option value="Ipê Amarelo">Ipê Amarelo</option>
-                <option value="Ipê Amarelo Cascudo">Ipê Amarelo Cascudo</option>
-                <option value="Ipê de Jardim">Ipê de Jardim</option>
-                <option value="Ipê Roxo de Bola">Ipê Roxo de Bola</option>
-                <option value="Abacateiro">Abacateiro</option>
-                <option value="Algodão da Praia">Algodão da Praia</option>
-                <option value="Ficus Elastica">Ficus Elastica</option>
-                <option value="Ficus Lyrata">Fícus Lyrata</option>
-                <option value="Ficus Bejamina">Ficus Benjamina</option>
-                <option value="Ficus Microcarpa">Fícus Microcarpa</option>
-                <option value="Dilenia">Dilenia</option>
-                <option value="Albízia">Albízia</option>
-                <option value="Castanheira">Castanheira</option>
-                <option value="Cassia Javanesa">Cassia Javanesa</option>
-                <option value="Cassia Ferruginea">Cassia Ferruginea</option>
-                <option value="Jamelão">Jamelão</option>
-                <option value="Jaqueira">Jaqueira</option>
-                <option value="Castanheira Molulo">Castanheira Molulo</option>
-                <option value="Árvore Samambaia">Árvore Samambaia</option>
-                <option value="Árvore Mastro">Árvore Mastro</option>
-                <option value="Cassia Grande">Cassia Grande</option>
-                <option value="Casuarina">Casuarina</option>
-                <option value="Chuva de Ouro">Chuva de Ouro</option>
-                <option value="Clerodendron">Clerodendron</option>
-                <option value="Coqueiro">Coqueiro</option>
-                <option value="Craibeira">Craibeira</option>
-                <option value="Escova de Garrafa">Escova de Garrafa</option>
-                <option value="Goiabeira">Goiabeira</option>
-                <option value="Jasmim Café">Jasmim Café</option>
-                <option value="Jasmim do Caribe">Jasmim do Caribe</option>
-                <option value="Jasmim Manga">Jasmim Manga</option>
-                <option value="Leucena">Leucena</option>
-                <option value="Acacia Mangium">Acacia Mangium</option>
-                <option value="Acacia Auriculiformis">Acacia Auriculiformis</option>
-                <option value="Lofântera">Lofântera</option>
-                <option value="Magnólia Amarela">Magnólia Amarela</option>
-                <option value="Magnólia Branca">Magnólia Branca</option>
-                <option value="Manacá de Cheiro">Manacá de Cheiro</option>
-                <option value="Morta">Morta</option>
-                <option value="Nim">Nim</option>
-                <option value="Paineira">Paineira</option>
-                <option value="Paineira Vermelha">Paineira Vermelha</option>
-                <option value="Palmeira Areca Bambú">Palmeira Areca Bambú</option>
-                <option value="Palmeira Açai">Palmeira Açai</option>
-                <option value="Palmeira Beatriz">PAlmeira Beatriz</option>
-                <option value="Palmeira Bismarck">Palmeira Bismarck</option>
-                <option value="Palmeira Coco de Quarta">Palmeira Coco de Quarta</option>
-                <option value="Pata de Vaca">Pata de Vaca</option>
-                <option value="Pata de Vaca Branca">Pata de Vaca Branca</option>
-                <option value="Pau Formiga">Pau Formiga</option>
-                <option value="Samânia">Samânia</option>
-                <option value="Tespésia">Tespésia</option>
-                <option value="Uva da Praia">Uva da Praia</option>
-                <option value="Não Identificada">Não Identificada</option>
-                <option value="Outra">Outra</option>
-            `;
+            // Lista de espécies de árvores, em ordem alfabética e sem mistura com bairros
+            const especies = [
+                "Abacateiro",
+                "Acacia Auriculiformis",
+                "Acacia Mangium",
+                "Albízia",
+                "Algodão da Praia",
+                "Angico Cangalha", // Nova espécie adicionada
+                "Árvore Mastro",
+                "Árvore Samambaia",
+                "Cajueiro",
+                "Casuarina",
+                "Cassia Ferruginea",
+                "Cassia Grande",
+                "Cassia Javanesa",
+                "Castanheira",
+                "Castanheira Molulo",
+                "Chuva de Ouro",
+                "Clerodendron",
+                "Coqueiro",
+                "Craibeira",
+                "Dilenia",
+                "Escova de Garrafa",
+                "Ficus Bejamina",
+                "Ficus Elastica",
+                "Fícus Lyrata",
+                "Fícus Microcarpa",
+                "Flamboyant",
+                "Flor de Rainha",
+                "Goiabeira",
+                "Ipê Amarelo",
+                "Ipê Amarelo Cascudo",
+                "Ipê Branco",
+                "Ipê de Jardim",
+                "Ipê Rosa",
+                "Ipê Roxo",
+                "Ipê Roxo de Bola",
+                "Jamelão",
+                "Jangada do Campo",
+                "Jaqueira",
+                "Jasmim Café",
+                "Jasmim do Caribe",
+                "Jasmim Manga",
+                "Leucena",
+                "Lofântera",
+                "Magnólia Amarela",
+                "Magnólia Branca",
+                "Manacá de Cheiro",
+                "Mangueira",
+                "Morta",
+                "Não Identificada",
+                "Nim",
+                "Oiti",
+                "Outra",
+                "Paineira",
+                "Paineira Vermelha",
+                "Palmeira Açai",
+                "Palmeira Areca Bambú",
+                "Palmeira Beatriz",
+                "Palmeira Bismarck",
+                "Palmeira Coco de Quarta",
+                "Pata de Vaca",
+                "Pata de Vaca Branca",
+                "Pau Formiga",
+                "Quaresmeira",
+                "Samânia",
+                "Sibipiruna",
+                "Tespésia",
+                "Uva da Praia"
+            ].sort(); // Ordena alfabeticamente
+
+            let especiesOptions = '<option value="">Selecione a Espécie</option>';
+            especies.forEach(especie => {
+                especiesOptions += `<option value="${especie}">${especie}</option>`;
+            });
 
             let posicoesOptions = `
                 <option value="">Selecione a Posição</option>
@@ -830,6 +961,7 @@
                 <label for="obsArvore-${arvoreCounter}">Obs:</label>
                 <textarea id="obsArvore-${arvoreCounter}" rows="3"></textarea>
                 <button type="button" onclick="transcreverVozParaTexto('obsArvore-${arvoreCounter}')" class="voice-button">🎤 Falar e transcrever</button>
+                <button type="button" class="clear-obs-arvore-button" data-target-id="obsArvore-${arvoreCounter}">Limpar Obs</button> <!-- NOVO BOTÃO AQUI -->
 
                 <button type="button" class="remove-arvore" data-arvore-id="${currentTreeId}">Remover Árvore</button>
                 <hr style="margin-top: 15px; margin-bottom: 15px; border-top: 1px dashed #ccc;">
@@ -892,6 +1024,16 @@
             arvoreDiv.querySelector(`#obsArvore-${arvoreCounter}`).addEventListener('input', (event) => {
                 const arvore = arvoresData.find(a => a.id === currentTreeId);
                 if (arvore) arvore.obsArvore = event.target.value;
+            });
+
+            // Adiciona event listener para o novo botão de limpar Obs (da árvore específica)
+            arvoreDiv.querySelector('.clear-obs-arvore-button').addEventListener('click', (event) => {
+                const targetId = event.target.dataset.targetId; // Pega o ID da textarea de obs
+                const field = document.getElementById(targetId);
+                if (field) {
+                    field.value = '';
+                    alert('Campo de observação da árvore limpo!');
+                }
             });
 
 
@@ -1220,8 +1362,8 @@
                     // Calcula a altura estimada para os detalhes da árvore para verificar quebra de página
                     if (servicoSelecionado === 'Plantio') {
                         // Apenas Abertura de Área Livre e Largura da Calçada para Plantio
-                        const aberturaAreaLivre = get("aberturaAreaLivre");
-                        const larguraCalcada = get("aberturaAreaLivre"); // Pega o valor do elemento correto
+                        const aberturaAreaLivre = document.getElementById("aberturaAreaLivre").value; // Correção: Pegar do elemento global
+                        const larguraCalcada = document.getElementById("larguraCalcada").value; // Correção: Pegar do elemento global
                         if (aberturaAreaLivre) estimatedDetailHeight += 8; // Linha para Abertura de Área Livre
                         if (larguraCalcada !== "") estimatedDetailHeight += 8; // Linha para Largura da Calçada
                         estimatedDetailHeight += 10; // Espaço extra
@@ -1255,8 +1397,8 @@
 
                     // ADICIONA CAMPOS DE PLANTIO DENTRO DOS DETALHES DA ÁRVORE (SE FOR PLANTIO)
                     if (servicoSelecionado === 'Plantio') {
-                        const aberturaAreaLivre = get("aberturaAreaLivre");
-                        const larguraCalcada = get("larguraCalcada");
+                        const aberturaAreaLivre = document.getElementById("aberturaAreaLivre").value;
+                        const larguraCalcada = document.getElementById("larguraCalcada").value;
 
                         if (aberturaAreaLivre) {
                             doc.setFont('helvetica', 'bold');
@@ -1444,11 +1586,17 @@
             doc.line(marginX, marginYTop + 8, pageWidth - marginX, marginYTop + 8);
 
             const fotos = ['foto1', 'foto2', 'foto3', 'foto4'];
-            // Ajustando a largura da foto para duas colunas com margens e espaçamento
-            let photoColumnWidth = (pageWidth - (3 * marginX)) / 2; // (largura_total - 2*margem_laterais - espacamento_entre_fotos) / 2
-            let photoAspectRatio = 0.75; // Assumindo 4:3 (height = width * 0.75)
+
+            // NOVAS VARIÁVEIS PARA AJUSTAR O TAMANHO DAS FOTOS NO PDF
+            // Reduzindo as margens e o espaçamento para que as fotos ocupem mais largura
+            const photoSideMargin = 15;    // Margem lateral para as fotos (em vez de marginX)
+            const photoColumnSpacing = 10; // Espaçamento entre as duas colunas de fotos
+            
+            // Calculando a largura disponível para duas colunas de fotos
+            let photoColumnWidth = (pageWidth - (2 * photoSideMargin) - photoColumnSpacing) / 2;
+            let photoAspectRatio = 0.75; // Assumindo proporção 4:3 (altura = largura * 0.75)
             let photoHeight = photoColumnWidth * photoAspectRatio;
-            let currentPhotoY_photos = marginYTop + 20;
+            let currentPhotoY_photos = marginYTop + 20; // Ponto inicial Y para as fotos
 
             for (let i = 0; i < fotos.length; i++) {
                 const id = fotos[i];
@@ -1475,7 +1623,12 @@
 
                     if (imageDataUrl) {
                         const col = i % 2;
-                        let posX = marginX + col * (photoColumnWidth + marginX);
+                        let posX;
+                        if (col === 0) { // Primeira coluna
+                            posX = photoSideMargin;
+                        } else { // Segunda coluna
+                            posX = photoSideMargin + photoColumnWidth + photoColumnSpacing;
+                        }
 
                         const photoBlockTotalHeight = photoHeight + 15; // Altura da foto + espaço para legenda
 
@@ -1495,7 +1648,7 @@
 
                         if (col === 1) {
                              // Após a segunda foto na linha, avança para a próxima linha
-                             currentPhotoY_photos += photoHeight + 25; // Espaço entre as linhas de fotos
+                             currentPhotoY_photos += photoHeight + 25; // Espaço entre as linhas de fotos (foto + legenda + espaço)
                         }
                     } else {
                         console.warn(`Foto ${id} não pôde ser processada e não foi adicionada ao PDF.`);
@@ -1582,6 +1735,33 @@
                 return;
             }
 
+            // --- NOVA VALIDAÇÃO: Diagnóstico e Indicação para serviços que não sejam 'Plantio' ---
+            let allDiagnosesIndicationsFilled = true;
+            if (!isPlantio) { // Apenas valida se o serviço não for "Plantio"
+                arvoresData.forEach(arvore => {
+                    const arvoreItemElement = document.getElementById(arvore.id);
+                    if (arvore.diagnoses.length === 0) {
+                        allDiagnosesIndicationsFilled = false;
+                        if (arvoreItemElement) arvoreItemElement.style.border = '2px solid orange'; // Destaca a árvore com erro
+                    } else if (arvoreItemElement) {
+                         arvoreItemElement.style.border = '1px solid #e0e0e0'; // Remove destaque se já foi corrigido
+                    }
+
+                    if (arvore.indications.length === 0) {
+                        allDiagnosesIndicationsFilled = false;
+                        if (arvoreItemElement) arvoreItemElement.style.border = '2px solid orange'; // Destaca a árvore com erro
+                    } else if (arvoreItemElement) {
+                         arvoreItemElement.style.border = '1px solid #e0e0e0'; // Remove destaque se já foi corrigido
+                    }
+                });
+
+                if (!allDiagnosesIndicationsFilled) {
+                    alert("Para serviços que não são 'Plantio', por favor, adicione pelo menos um 'Diagnóstico' e uma 'Indicação' para cada árvore. As árvores com campos pendentes foram destacadas.");
+                    return; // Interrompe a submissão
+                }
+            }
+
+
             // --- VALIDAÇÃO CONDICIONAL PARA O CAMPO DE REFERÊNCIA (NÚMERO) ---
             const numeroRef = document.getElementById('numeroReferencia').value.trim();
             const tipoRef = document.getElementById('tipoReferencia').value;
@@ -1603,7 +1783,17 @@
 
             try {
                 await gerarPDF();
-                document.getElementById("numero").value = getNextReportNumber();
+                // Lógica MOVIDA/ADICIONADA AQUI: Salva o número do relatório atual e define o próximo
+                const currentReportNumberString = document.getElementById("numero").value; // Ex: "40/2025"
+                const parts = currentReportNumberString.split('/');
+                const currentNumber = parseInt(parts[0]);
+                const currentYear = parseInt(parts[1]);
+
+                localStorage.setItem('arborizaAppReportNumber', JSON.stringify({
+                    number: currentNumber,
+                    year: currentYear
+                }));
+                document.getElementById("numero").value = getNextReportNumber(); // Obtém o próximo número para o campo
 
             } catch (error) {
                 console.error("Erro geral ao gerar PDF:", error);
@@ -1613,6 +1803,74 @@
                 loadingMsg.style.display = 'none';
             }
         });
+
+        // --- FUNÇÃO ADICIONADA: Limpa o formulário, EXCETO o número do relatório ---
+        function resetFormularioAposPdf() {
+            // Limpa o array de dados das árvores e o container HTML
+            arvoresData = [];
+            document.getElementById('arvoresContainer').innerHTML = '';
+            arvoreCounter = 0; // Resetar o contador de IDs para que a primeira árvore seja 'arvore-1'
+            addArvoreFields(); // Adiciona uma nova árvore vazia como a primeira
+
+            // Limpa campos principais do formulário
+            document.getElementById('tipoReferencia').value = 'Processo'; // Volta para o default, ou pode ser ''
+            document.getElementById('numeroReferencia').value = '';
+            document.getElementById('servico').value = '';
+            document.getElementById('bairro').value = '';
+            document.getElementById('endereco').value = '';
+            document.getElementById('tecnico').value = '';
+            document.getElementById('dataFinal').value = ''; // Limpa a data
+
+            // Limpa e oculta campos de plantio se visíveis
+            document.getElementById('plantioFieldsContainer').style.display = 'none';
+            document.getElementById('aberturaAreaLivre').value = '';
+            document.getElementById('larguraCalcada').value = '';
+
+            // Limpa localização
+            if (mapa) { // Verifica se o mapa foi inicializado
+                mapa.remove(); // Remove o mapa Leaflet
+                mapa = null;
+            }
+            marcador = null; // Reinicia o marcador
+            latGlobal = null;
+            lngGlobal = null;
+            document.getElementById('loadingLocation').style.display = 'none'; // Esconde mensagem de loading de localização
+
+            // Limpa as entradas de fotos e previews
+            const inputFotos = ['foto1', 'foto2', 'foto3', 'foto4'];
+            inputFotos.forEach(id => {
+                const inputElement = document.getElementById(id);
+                if (inputElement) {
+                    inputElement.value = ''; // Limpa o input file
+                }
+            });
+            document.getElementById('previewFotos').innerHTML = ''; // Limpa as pré-visualizações
+
+            // REMOVIDO: Limpa o campo de observações gerais explicitamente, pois o campo foi removido do HTML
+            // document.getElementById('observacoesCampo').value = '';
+
+            // Garante que o input de número de referência condicional seja ocultado novamente, se "Demanda Interna" for o default
+            const tipoRef = document.getElementById('tipoReferencia').value;
+            if (tipoRef === "Demanda Interna") {
+                document.getElementById('numeroReferencia').style.display = 'none';
+                document.getElementById('numeroReferencia').removeAttribute('required');
+            } else {
+                document.getElementById('numeroReferencia').style.display = 'block';
+                document.getElementById('numeroReferencia').setAttribute('required', 'required');
+            }
+            // Chama applyTreeFieldVisibility para garantir que o estado inicial dos campos da árvore esteja correto
+            applyTreeFieldVisibility();
+
+            alert("Formulário limpo! Pronto para registrar a próxima árvore. O número do relatório foi atualizado.");
+        }
+
+        // --- EVENT LISTENER PARA O NOVO BOTÃO DE LIMPAR ---
+        document.getElementById('limparParaProximaArvoreBtn').addEventListener('click', resetFormularioAposPdf);
+
+        // REMOVIDO: O event listener para o botão de transcrever voz para o campo Observações Gerais
+        // document.getElementById('transcreverVozBtn').addEventListener('click', () => {
+        //     transcreverVozParaTexto('observacoesCampo');
+        // });
     </script>
 </body>
 </html>
