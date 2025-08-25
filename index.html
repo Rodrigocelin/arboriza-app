@@ -1794,12 +1794,7 @@
 
         // Função principal para gerar o PDF
         async function gerarPDF() {
-            console.log("DEBUG: Função gerarPDF() iniciada. Isso só deve acontecer ao clicar em '
-
-
-
-
-'.");
+            console.log("DEBUG: Função gerarPDF() iniciada. Isso só deve acontecer ao clicar em 'Gerar PDF'.");
             const doc = new jsPDF();
             // A função get foi ajustada para os novos IDs
             const get = id => document.getElementById(id)?.value || "";
