@@ -9,6 +9,8 @@
     <script src="https://unpkg.com/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <!-- Meta tag atualizada para compatibilidade com PWA em dispositivos móveis -->
+    <meta name="mobile-web-app-capable" content="yes">
     <style>
         /* Estilos CSS Base */
         body {
@@ -27,6 +29,13 @@
             margin-bottom: 20px;
             color: #2e7d32;
             font-size: 1.8em;
+        }
+        h2 {
+            text-align: center;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            color: #2e7d32;
+            font-size: 1.5em;
         }
         label {
             font-weight: bold;
@@ -58,7 +67,7 @@
             border-radius: 6px; /* Bordas mais arredondadas */
             cursor: pointer;
             transition: background 0.3s ease; /* Transição suave no hover */
-            display: block; /* Garante que o botão ocupe sua própria linha */
+            display: inline-block; /* Permite que os botões fiquem na mesma linha */
             width: auto; /* Permite que o botão se ajuste ao conteúdo */
             margin-left: auto; /* Centraliza o botão */
             margin-right: auto; /* Centraliza o botão */
@@ -113,6 +122,18 @@
             flex-wrap: wrap; /* Garante que as fotos quebrem a linha */
             justify-content: center; /* Centraliza as fotos */
         }
+        .preview-fotos .photo-item { /* Novo container para foto + descrição + botões */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 15px;
+            border: 1px solid #e0e0e0;
+            padding: 10px;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
         .preview-fotos img {
             width: 120px; /* Tamanho ligeiramente maior para desktop */
             height: 90px;
@@ -121,6 +142,28 @@
             border: 1px solid #ccc;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
+        .preview-fotos textarea { /* Estilo para o campo de descrição da foto */
+            width: 100%;
+            min-height: 40px;
+            font-size: 0.9em;
+            resize: vertical;
+            margin-top: 5px;
+        }
+        .preview-fotos .photo-actions {
+            display: flex;
+            gap: 5px;
+            margin-top: 5px;
+        }
+        .preview-fotos .photo-actions button {
+            margin: 0;
+            padding: 5px 10px;
+            font-size: 0.8em;
+            background-color: #007bff;
+        }
+        .preview-fotos .photo-actions button:hover {
+            background-color: #0056b3;
+        }
+
         #loadingMessage, #loadingLocation {
             display: none;
             color: #43a047;
@@ -224,8 +267,7 @@
         }
 
         /* Nova classe para controlar a visibilidade dos campos específicos de Plantio */
-        .plantio-fields-container {
-            display: none; /* Oculto por padrão */
+        .campo-condicional-plantio {
             border: 1px dashed #a5d6a7; /* Borda mais verde */
             padding: 20px;
             margin-top: 20px;
@@ -261,6 +303,89 @@
             flex-shrink: 0;
         }
 
+        /* Estilos para o Modal de Desenho */
+        .drawing-modal-overlay {
+            display: none; /* Oculto por padrão */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .drawing-modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            max-width: 90%;
+            max-height: 90%;
+            overflow: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .drawing-modal-content canvas {
+            border: 1px solid #ccc;
+            background-color: #f0f0f0;
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .drawing-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .drawing-controls input[type="color"] {
+            width: 50px;
+            height: 30px;
+            padding: 0;
+            border: none;
+        }
+
+        .drawing-controls input[type="range"] {
+            width: 100px;
+        }
+
+        .drawing-controls button {
+            margin-top: 0;
+            padding: 8px 15px;
+            font-size: 0.9em;
+        }
+        .drawing-controls button.cancel-button {
+            background-color: #f44336;
+        }
+        .drawing-controls button.cancel-button:hover {
+            background-color: #d32222;
+        }
+        /* Estilos para os botões de ferramenta de desenho */
+        .tool-button {
+            background-color: #6c757d; /* Cinza para ferramentas inativas */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .tool-button.active {
+            background-color: #43a047; /* Verde para a ferramenta ativa */
+        }
+        .tool-button:hover {
+            background-color: #5a6268;
+        }
+
 
         /* Media Queries para Responsividade */
         @media (max-width: 768px) {
@@ -292,9 +417,15 @@
             .preview-fotos {
                 gap: 10px;
             }
+            .preview-fotos .photo-item {
+                padding: 8px;
+            }
             .preview-fotos img {
                 width: 90px;
                 height: 67px;
+            }
+            .preview-fotos textarea {
+                font-size: 0.85em;
             }
             .arvore-item {
                 padding: 15px;
@@ -354,6 +485,22 @@
             .add-section {
                 flex-direction: column; /* Empilha select e button */
                 align-items: stretch;
+            }
+            button {
+                display: block; /* Força botões a ocuparem linha inteira em telas pequenas */
+                margin-left: 0;
+                margin-right: 0;
+                width: 100%;
+            }
+            .drawing-modal-content {
+                padding: 10px;
+            }
+            .drawing-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .drawing-controls input[type="range"] {
+                width: 100%;
             }
         }
     </style>
@@ -481,19 +628,6 @@
             <button type="button" onclick="transcreverVozParaTexto('endereco')" class="voice-button">🎤 Falar</button>
         </div>
 
-        <div id="plantioFieldsContainer" class="plantio-fields-container">
-            <h3>Informações para Plantio</h3>
-            <label for="aberturaAreaLivre">Abertura de Área Livre:</label>
-            <select id="aberturaAreaLivre">
-                <option value="">Selecione uma opção</option>
-                <option value="Área pavimentada">Área pavimentada</option>
-                <option value="Área não pavimentada">Área não pavimentada</option>
-            </select>
-
-            <label for="larguraCalcada">Largura da Calçada (m):</label>
-            <input type="number" id="larguraCalcada" step="0.1" min="0" placeholder="Ex: 1.5" />
-        </div>
-
         <div id="arvoresContainer">
         </div>
 
@@ -505,10 +639,23 @@
         <div id="mapaInterativo"></div>
 
         <label>Fotos do Local (até 4):</label>
-        <input type="file" id="foto1" accept="image/*" capture="environment" />
-        <input type="file" id="foto2" accept="image/*" capture="environment" />
-        <input type="file" id="foto3" accept="image/*" capture="environment" />
-        <input type="file" id="foto4" accept="image/*" capture="environment" />
+        <!-- Cada input de foto agora tem um container para a pré-visualização, descrição e botão de edição -->
+        <div class="photo-input-group">
+            <input type="file" id="foto1" accept="image/*" capture="environment" />
+            <textarea id="descricaoFoto1" rows="2" placeholder="Descrição da Foto 1"></textarea>
+        </div>
+        <div class="photo-input-group">
+            <input type="file" id="foto2" accept="image/*" capture="environment" />
+            <textarea id="descricaoFoto2" rows="2" placeholder="Descrição da Foto 2"></textarea>
+        </div>
+        <div class="photo-input-group">
+            <input type="file" id="foto3" accept="image/*" capture="environment" />
+            <textarea id="descricaoFoto3" rows="2" placeholder="Descrição da Foto 3"></textarea>
+        </div>
+        <div class="photo-input-group">
+            <input type="file" id="foto4" accept="image/*" capture="environment" />
+            <textarea id="descricaoFoto4" rows="2" placeholder="Descrição da Foto 4"></textarea>
+        </div>
         <div id="previewFotos" class="preview-fotos"></div>
 
         <label for="tecnico">Responsável Técnico:</label>
@@ -517,11 +664,32 @@
         <label for="dataFinal">Data de Emissão:</label>
         <input type="date" id="dataFinal" required />
 
-        <button type="submit" id="btnGerarPdf">Gerar PDF</button>
-        <!-- BOTÃO DE LIMPAR FORMULÁRIO COMPLETO (EXCETO Nº RELATÓRIO) -->
+        <button type="button" id="btnGerarPdf">Gerar PDF</button>
         <button type="button" id="limparParaProximaArvoreBtn" style="background-color: #f44336; margin-left: 10px;">Limpar para Próxima Árvore</button>
         <div id="loadingMessage">Gerando PDF, aguarde...</div>
     </form>
+
+    <!-- Modal de Desenho -->
+    <div id="drawingModalOverlay" class="drawing-modal-overlay">
+        <div class="drawing-modal-content">
+            <h3>Editar Desenho</h3>
+            <canvas id="drawingCanvas"></canvas>
+            <div class="drawing-controls">
+                <label>Ferramenta:</label>
+                <button type="button" id="toolLineBtn" class="tool-button active" data-tool="line">Linha</button>
+                <button type="button" id="toolCircleBtn" class="tool-button" data-tool="circle">Círculo</button>
+                <button type="button" id="toolArrowBtn" class="tool-button" data-tool="arrow">Seta</button>
+
+                <label for="brushColor">Cor:</label>
+                <input type="color" id="brushColor" value="#FF0000">
+                <label for="brushSize">Tamanho:</label>
+                <input type="range" id="brushSize" min="1" max="20" value="5">
+                <button type="button" id="clearCanvasBtn">Limpar</button>
+                <button type="button" id="saveDrawingBtn">Salvar</button>
+                <button type="button" id="cancelDrawingBtn" class="cancel-button">Cancelar</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         const { jsPDF } = window.jspdf;
@@ -530,6 +698,19 @@
         // Armazena os dados das árvores, incluindo seus diagnósticos, indicações e OBS
         let arvoresData = [];
         let arvoreCounter = 0; // Para dar IDs únicos a cada conjunto de campos de árvore (não para a numeração visual)
+
+        // NOVAS VARIÁVEIS PARA MANIPULAÇÃO DE FOTOS E DESENHO
+        let photoDescriptions = ['', '', '', '']; // Array para armazenar as descrições das 4 fotos
+        let editedPhotoDataUrls = [null, null, null, null]; // Armazena as Data URLs das fotos editadas
+        let currentEditingPhotoIndex = -1; // Índice da foto atualmente sendo editada no modal
+
+        // Variáveis para o canvas de desenho
+        let drawingCanvas, drawingCtx;
+        let isDrawing = false;
+        let lastX = 0, lastY = 0;
+        let startX = 0, startY = 0; // Para desenhar formas
+        let currentTool = 'line'; // Ferramenta de desenho atual: 'line', 'circle', 'arrow'
+        let drawnShapes = []; // Array para armazenar todas as formas desenhadas (permanentes)
 
         // Função auxiliar para adicionar texto a um campo com quebra de linha
         function appendTextToField(fieldId, text) {
@@ -636,34 +817,73 @@
             });
         }
 
-        // --- FUNÇÃO PARA GERENCIAR A CONTAGEM AUTOMÁTICA DO RELATÓRIO ---
-        function getNextReportNumber() {
+        // --- FUNÇÕES PARA GERENCIAR A CONTAGEM AUTOMÁTICA DO RELATÓRIO ---
+
+        /**
+         * Obtém o número do relatório atual do localStorage.
+         * Não incrementa nem salva.
+         * @returns {number} O número do relatório. Retorna 0 se não houver dados ou o ano mudou.
+         */
+        function getReportNumberFromStorage() {
             const currentYear = new Date().getFullYear();
             let lastReportData = localStorage.getItem('arborizaAppReportNumber');
-            let reportNumber = 1;
-            let savedYear = currentYear;
+            let reportNumber = 0; // Default para 0
 
             if (lastReportData) {
                 try {
                     const data = JSON.parse(lastReportData);
-                    savedYear = data.year;
-                    if (savedYear === currentYear) {
-                        reportNumber = data.number + 1;
-                    } else {
-                        // Ano mudou, reiniciar a contagem
-                        reportNumber = 1;
+                    if (data.year === currentYear) {
+                        reportNumber = data.number;
                     }
                 } catch (e) {
                     console.error("Erro ao parsear dados do relatório do LocalStorage:", e);
-                    // Em caso de erro, reiniciar contagem
-                    reportNumber = 1;
                 }
             }
+            return reportNumber;
+        }
 
-            // A LINHA ABAIXO FOI REMOVIDA DAQUI E SERÁ CHAMADA SOMENTE APÓS A GERAÇÃO BEM SUCEDIDA DO PDF
-            // localStorage.setItem('arborizaAppReportNumber', JSON.stringify({ number: reportNumber, year: currentYear }));
+        /**
+         * Salva um número de relatório específico no localStorage.
+         * @param {number} number O número a ser salvo.
+         */
+        function setReportNumberInStorage(number) {
+            const currentYear = new Date().getFullYear();
+            localStorage.setItem('arborizaAppReportNumber', JSON.stringify({ number: number, year: currentYear }));
+        }
 
-            return `${reportNumber}/${currentYear}`;
+        /**
+         * Exibe o número do relatório atual no campo de input.
+         * Garante que o localStorage tenha um número válido (começa em 1 se vazio/novo ano).
+         */
+        function displayCurrentReportNumber() {
+            let currentNumber = getReportNumberFromStorage();
+            const currentYear = new Date().getFullYear();
+
+            if (currentNumber === 0) { // Se não há dados ou ano novo, define como 1
+                currentNumber = 1;
+                setReportNumberInStorage(currentNumber); // Salva 1 no localStorage
+            }
+            document.getElementById("numero").value = `${currentNumber}/${currentYear}`;
+        }
+
+        /**
+         * Incrementa o número do relatório no localStorage e o exibe no campo.
+         * Se for a primeira vez ou novo ano, começa do 1.
+         */
+        function incrementAndDisplayNextReportNumber() {
+            let currentNumber = getReportNumberFromStorage();
+            const currentYear = new Date().getFullYear();
+
+            // Se for o início de um novo ano, ou se não houver número salvo, começa do 1.
+            // Caso contrário, apenas incrementa.
+            if (currentNumber === 0) {
+                currentNumber = 1;
+            } else {
+                currentNumber++;
+            }
+
+            setReportNumberInStorage(currentNumber); // Salva o novo número
+            document.getElementById("numero").value = `${currentNumber}/${currentYear}`; // Exibe
         }
 
         // Função genérica para adicionar um item a uma lista específica de uma árvore
@@ -732,16 +952,51 @@
                         especie: "",
                         quantidade: 0,
                         posicao: "",
-                        altura: 0,
-                        cap: 0,
+                        altura: null,
+                        cap: null,
                         diagnoses: [],
                         indications: [],
-                        obsArvore: ""
+                        obsArvore: "",
+                        aberturaAreaLivre: "", // Adicionado para plantio
+                        larguraCalcada: null // Adicionado para plantio
                     });
                 }
             });
             arvoresData = newArvoresData; // Atualiza o array global de dados
             console.log("DEBUG: arvoresData após updateTitles:", arvoresData); // Para depuração
+        }
+
+        // NOVO: Função para controlar a visibilidade do campo Largura da Calçada
+        function updateLarguraCalcadaVisibility(treeId) {
+            const selectServico = document.getElementById('servico');
+            const isPlantio = (selectServico.value === 'Plantio');
+
+            const aberturaAreaLivreSelect = document.getElementById(`aberturaAreaLivre-${treeId.split('-')[1]}`);
+            const larguraCalcadaLabel = aberturaAreaLivreSelect.nextElementSibling; // O label da Largura da Calçada
+            const larguraCalcadaInput = document.getElementById(`larguraCalcada-${treeId.split('-')[1]}`);
+
+            const posicaoSelect = document.getElementById(`posicao-${treeId.split('-')[1]}`);
+
+            // Condição para exibir Largura da Calçada:
+            // - É serviço de Plantio
+            // E (
+            //   - Abertura de Área Livre é 'Área pavimentada'
+            //   OU
+            //   - Posição é 'Calçada'
+            // )
+            const shouldShowLarguraCalcada = isPlantio &&
+                (aberturaAreaLivreSelect.value === 'Área pavimentada' || posicaoSelect.value === 'Calçada');
+
+            if (shouldShowLarguraCalcada) {
+                larguraCalcadaLabel.style.display = 'block';
+                larguraCalcadaInput.style.display = 'block';
+                larguraCalcadaInput.setAttribute('required', 'required');
+            } else {
+                larguraCalcadaLabel.style.display = 'none';
+                larguraCalcadaInput.style.display = 'none';
+                larguraCalcadaInput.removeAttribute('required');
+                larguraCalcadaInput.value = ''; // Limpa o valor quando oculto
+            }
         }
 
 
@@ -938,6 +1193,20 @@
                     <input type="number" id="cap-${arvoreCounter}" step="0.1" />
                 </div>
 
+                <div class="campo-condicional-plantio"> <!-- NOVO: Campos de plantio por árvore -->
+                    <h4>Informações para Plantio desta Árvore:</h4>
+                    <label for="aberturaAreaLivre-${arvoreCounter}">Abertura de Área Livre:</label>
+                    <select id="aberturaAreaLivre-${arvoreCounter}">
+                        <option value="">Selecione uma opção</option>
+                        <option value="Área pavimentada">Área pavimentada</option>
+                        <option value="Área não pavimentada">Área não pavimentada</option>
+                        <option value="Área livre aberta">Área livre aberta</option> <!-- NOVA OPÇÃO AQUI -->
+                    </select>
+
+                    <label for="larguraCalcada-${arvoreCounter}">Largura da Calçada (m):</label>
+                    <input type="number" id="larguraCalcada-${arvoreCounter}" step="0.1" min="0" placeholder="Ex: 1.5" />
+                </div>
+
                 <div class="campo-condicional-diagnostico">
                     <label for="selectDiagnostico-${arvoreCounter}">Diagnóstico:</label>
                     <div class="add-section">
@@ -978,7 +1247,9 @@
                 cap: null,
                 diagnoses: [],
                 indications: [],
-                obsArvore: ""
+                obsArvore: "",
+                aberturaAreaLivre: "", // Adicionado para plantio
+                larguraCalcada: null // Adicionado para plantio
             });
 
             // Adiciona event listener para o botão remover
@@ -1012,6 +1283,8 @@
             arvoreDiv.querySelector(`#posicao-${arvoreCounter}`).addEventListener('change', (event) => {
                 const arvore = arvoresData.find(a => a.id === currentTreeId);
                 if (arvore) arvore.posicao = event.target.value;
+                // NOVO: Chama a função de visibilidade da largura da calçada ao mudar a posição
+                updateLarguraCalcadaVisibility(currentTreeId);
             });
             arvoreDiv.querySelector(`#altura-${arvoreCounter}`).addEventListener('input', (event) => {
                 const arvore = arvoresData.find(a => a.id === currentTreeId);
@@ -1025,6 +1298,18 @@
                 const arvore = arvoresData.find(a => a.id === currentTreeId);
                 if (arvore) arvore.obsArvore = event.target.value;
             });
+            // NOVO: Event listeners para os campos de plantio por árvore
+            arvoreDiv.querySelector(`#aberturaAreaLivre-${arvoreCounter}`).addEventListener('change', (event) => {
+                const arvore = arvoresData.find(a => a.id === currentTreeId);
+                if (arvore) arvore.aberturaAreaLivre = event.target.value;
+                // NOVO: Chama a função de visibilidade da largura da calçada ao mudar a abertura de área livre
+                updateLarguraCalcadaVisibility(currentTreeId);
+            });
+            arvoreDiv.querySelector(`#larguraCalcada-${arvoreCounter}`).addEventListener('input', (event) => {
+                const arvore = arvoresData.find(a => a.id === currentTreeId);
+                if (arvore) arvore.larguraCalcada = parseFloat(event.target.value) || null;
+            });
+
 
             // Adiciona event listener para o novo botão de limpar Obs (da árvore específica)
             arvoreDiv.querySelector('.clear-obs-arvore-button').addEventListener('click', (event) => {
@@ -1032,91 +1317,439 @@
                 const field = document.getElementById(targetId);
                 if (field) {
                     field.value = '';
-                    alert('Campo de observação da árvore limpo!');
+                    // Não usar alert aqui para não interromper o fluxo
+                    console.log('Campo de observação da árvore limpo!');
                 }
             });
 
 
             updateArvoreTitles();
             applyTreeFieldVisibility();
+            // NOVO: Chama a função de visibilidade da largura da calçada para a nova árvore
+            updateLarguraCalcadaVisibility(currentTreeId);
         }
 
         // Função para ajustar a visibilidade dos campos dentro de cada bloco de árvore E dos novos campos de plantio
         function applyTreeFieldVisibility() {
             const selectServico = document.getElementById('servico');
             const isPlantio = (selectServico.value === 'Plantio');
-            const plantioFieldsContainer = document.getElementById('plantioFieldsContainer');
-
-            // Controla a visibilidade dos novos campos de Plantio NO FORMULÁRIO
-            if (isPlantio) {
-                plantioFieldsContainer.style.display = 'block';
-            } else {
-                plantioFieldsContainer.style.display = 'none';
-                // Limpa os valores quando o container é ocultado
-                document.getElementById('aberturaAreaLivre').value = '';
-                document.getElementById('larguraCalcada').value = '';
-            }
-
 
             document.querySelectorAll('.arvore-item').forEach(arvoreItem => {
                 const treeId = arvoreItem.id.split('-')[1];
 
                 const alturaCapFields = arvoreItem.querySelector('.campo-condicional-altura-cap');
-                if (alturaCapFields) {
-                    if (isPlantio) {
-                        alturaCapFields.classList.add('campo-plantio-oculto');
-                        arvoreItem.querySelector(`#altura-${treeId}`).removeAttribute('required');
-                        // Removido o required do CAP aqui também para garantir a não obrigatoriedade
-                        arvoreItem.querySelector(`#cap-${treeId}`).removeAttribute('required');
-                    } else {
-                        alturaCapFields.classList.remove('campo-plantio-oculto');
-                    }
-                }
-
                 const diagnosticoField = arvoreItem.querySelector('.campo-condicional-diagnostico');
-                if (diagnosticoField) {
-                    if (isPlantio) {
-                        diagnosticoField.classList.add('campo-plantio-oculto');
-                    } else {
-                        diagnosticoField.classList.remove('campo-plantio-oculto');
-                    }
-                }
-
                 const indicacaoField = arvoreItem.querySelector('.campo-condicional-indicacao');
-                if (indicacaoField) {
-                    if (isPlantio) {
-                        indicacaoField.classList.add('campo-plantio-oculto');
-                    } else {
-                        indicacaoField.classList.remove('campo-plantio-oculto');
-                    }
+                const plantioPerTreeFields = arvoreItem.querySelector('.campo-condicional-plantio');
+
+
+                if (isPlantio) {
+                    // Oculta campos de altura/CAP, diagnóstico e indicação
+                    if (alturaCapFields) alturaCapFields.classList.add('campo-plantio-oculto');
+                    if (diagnosticoField) diagnosticoField.classList.add('campo-plantio-oculto');
+                    if (indicacaoField) indicacaoField.classList.add('campo-plantio-oculto');
+
+                    // Exibe campos de plantio por árvore
+                    if (plantioPerTreeFields) plantioPerTreeFields.style.display = 'block';
+
+                    // Remove o required de altura para plantio
+                    arvoreItem.querySelector(`#altura-${treeId}`).removeAttribute('required');
+                    arvoreItem.querySelector(`#cap-${treeId}`).removeAttribute('required');
+
+                    // Adiciona required para Abertura de Área Livre
+                    arvoreItem.querySelector(`#aberturaAreaLivre-${treeId}`).setAttribute('required', 'required');
+                    // A largura da calçada será tratada por updateLarguraCalcadaVisibility
+
+                } else {
+                    // Exibe campos de altura/CAP, diagnóstico e indicação
+                    if (alturaCapFields) alturaCapFields.classList.remove('campo-plantio-oculto');
+                    if (diagnosticoField) diagnosticoField.classList.remove('campo-plantio-oculto');
+                    if (indicacaoField) indicacaoField.classList.remove('campo-plantio-oculto');
+
+                    // Oculta campos de plantio por árvore
+                    if (plantioPerTreeFields) plantioPerTreeFields.style.display = 'none';
+
+                    // Adiciona required de altura para não-plantio
+                    arvoreItem.querySelector(`#altura-${treeId}`).setAttribute('required', 'required');
+                    // CAP continua opcional, então não adiciona required
+
+                    // Remove required de campos de plantio
+                    arvoreItem.querySelector(`#aberturaAreaLivre-${treeId}`).removeAttribute('required');
+                    arvoreItem.querySelector(`#larguraCalcada-${treeId}`).removeAttribute('required');
+                    // Limpa os valores dos campos de plantio quando ocultos
+                    arvoreItem.querySelector(`#aberturaAreaLivre-${treeId}`).value = '';
+                    arvoreItem.querySelector(`#larguraCalcada-${treeId}`).value = '';
+                }
+                // NOVO: Chama a função de visibilidade da largura da calçada para cada árvore
+                updateLarguraCalcadaVisibility(arvoreItem.id);
+            });
+        }
+
+        // --- LÓGICA DO MODAL DE DESENHO ---
+        function setupDrawingCanvas() {
+            drawingCanvas = document.getElementById('drawingCanvas');
+            drawingCtx = drawingCanvas.getContext('2d');
+
+            // Configurações iniciais do pincel
+            drawingCtx.lineWidth = document.getElementById('brushSize').value;
+            drawingCtx.lineCap = 'round';
+            drawingCtx.strokeStyle = document.getElementById('brushColor').value;
+
+            // Event listeners para as ferramentas
+            document.querySelectorAll('.tool-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    document.querySelectorAll('.tool-button').forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    currentTool = button.dataset.tool;
+                    console.log("Ferramenta selecionada:", currentTool);
+                });
+            });
+
+            // Eventos de desenho para mouse
+            drawingCanvas.addEventListener('mousedown', startDrawing);
+            drawingCanvas.addEventListener('mousemove', draw);
+            drawingCanvas.addEventListener('mouseup', stopDrawing);
+            drawingCanvas.addEventListener('mouseout', stopDrawing);
+
+            // Eventos de desenho para toque
+            drawingCanvas.addEventListener('touchstart', (e) => {
+                e.preventDefault(); // Previne o scroll da página
+                startDrawing(e.touches[0]);
+            });
+            drawingCanvas.addEventListener('touchmove', (e) => {
+                e.preventDefault(); // Previne o scroll da página
+                draw(e.touches[0]);
+            });
+            drawingCanvas.addEventListener('touchend', stopDrawing);
+            drawingCanvas.addEventListener('touchcancel', stopDrawing);
+
+            // Event listeners para controles do desenho
+            document.getElementById('brushColor').addEventListener('input', (e) => {
+                drawingCtx.strokeStyle = e.target.value;
+            });
+            document.getElementById('brushSize').addEventListener('input', (e) => {
+                drawingCtx.lineWidth = e.target.value;
+            });
+            document.getElementById('clearCanvasBtn').addEventListener('click', clearDrawingCanvas);
+            document.getElementById('saveDrawingBtn').addEventListener('click', saveDrawing);
+            document.getElementById('cancelDrawingBtn').addEventListener('click', cancelDrawing);
+
+            // Fechar modal clicando fora
+            document.getElementById('drawingModalOverlay').addEventListener('click', (e) => {
+                if (e.target.id === 'drawingModalOverlay') {
+                    cancelDrawing();
                 }
             });
         }
 
+        function getCanvasCoordinates(e) {
+            const rect = drawingCanvas.getBoundingClientRect();
+            let x, y;
+            if (e.clientX !== undefined) { // Mouse or Touch event
+                x = e.clientX - rect.left;
+                y = e.clientY - rect.top;
+            } else { // Fallback, though clientX/Y should be present
+                x = e.offsetX;
+                y = e.offsetY;
+            }
+            return { x, y };
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            const { x, y } = getCanvasCoordinates(e);
+            startX = x;
+            startY = y;
+            lastX = x;
+            lastY = y;
+
+            if (currentTool === 'line') {
+                // Para linhas, começamos um novo caminho de pontos
+                drawnShapes.push({
+                    type: 'line',
+                    points: [{ x: startX, y: startY }],
+                    color: drawingCtx.strokeStyle,
+                    lineWidth: drawingCtx.lineWidth
+                });
+            }
+            redrawCanvas(); // Redraw to clear any temporary previous drawing
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+
+            const { x, y } = getCanvasCoordinates(e);
+            const currentColor = drawingCtx.strokeStyle;
+            const currentWidth = drawingCtx.lineWidth;
+
+            redrawCanvas(); // Clear and redraw permanent shapes
+
+            // Draw temporary shape
+            drawingCtx.beginPath();
+            drawingCtx.strokeStyle = currentColor;
+            drawingCtx.lineWidth = currentWidth;
+
+            if (currentTool === 'line') {
+                const currentLine = drawnShapes[drawnShapes.length - 1];
+                if (currentLine && currentLine.type === 'line') {
+                    currentLine.points.push({ x, y });
+                    drawShape(currentLine); // Redraw the current evolving line
+                }
+            } else if (currentTool === 'circle') {
+                const radius = Math.sqrt(Math.pow(x - startX, 2) + Math.pow(y - startY, 2));
+                drawingCtx.arc(startX, startY, radius, 0, 2 * Math.PI);
+                drawingCtx.stroke();
+            } else if (currentTool === 'arrow') {
+                drawArrow(drawingCtx, startX, startY, x, y, currentColor, currentWidth);
+            }
+            lastX = x;
+            lastY = y;
+        }
+
+        function stopDrawing(e) {
+            if (!isDrawing) return;
+            isDrawing = false;
+
+            const { x, y } = getCanvasCoordinates(e);
+            const currentColor = drawingCtx.strokeStyle;
+            const currentWidth = drawingCtx.lineWidth;
+
+            if (currentTool === 'line') {
+                // Line points are already added in draw()
+            } else if (currentTool === 'circle') {
+                const radius = Math.sqrt(Math.pow(x - startX, 2) + Math.pow(y - startY, 2));
+                drawnShapes.push({
+                    type: 'circle',
+                    centerX: startX,
+                    centerY: startY,
+                    radius: radius,
+                    color: currentColor,
+                    lineWidth: currentWidth
+                });
+            } else if (currentTool === 'arrow') {
+                drawnShapes.push({
+                    type: 'arrow',
+                    startX: startX,
+                    startY: startY,
+                    endX: x,
+                    endY: y,
+                    color: currentColor,
+                    lineWidth: currentWidth
+                });
+            }
+            redrawCanvas(); // Final redraw with the new permanent shape
+        }
+
+        function redrawCanvas() {
+            drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+            if (drawingCanvas.originalImage) {
+                drawingCtx.drawImage(drawingCanvas.originalImage, 0, 0, drawingCanvas.width, drawingCanvas.height);
+            }
+
+            drawnShapes.forEach(shape => {
+                drawShape(shape);
+            });
+        }
+
+        function drawShape(shape) {
+            drawingCtx.strokeStyle = shape.color;
+            drawingCtx.lineWidth = shape.lineWidth;
+            drawingCtx.beginPath();
+
+            if (shape.type === 'line') {
+                if (shape.points.length > 0) {
+                    drawingCtx.moveTo(shape.points[0].x, shape.points[0].y);
+                    for (let i = 1; i < shape.points.length; i++) {
+                        drawingCtx.lineTo(shape.points[i].x, shape.points[i].y);
+                    }
+                }
+            } else if (shape.type === 'circle') {
+                drawingCtx.arc(shape.centerX, shape.centerY, shape.radius, 0, 2 * Math.PI);
+            } else if (shape.type === 'arrow') {
+                drawArrow(drawingCtx, shape.startX, shape.startY, shape.endX, shape.endY, shape.color, shape.lineWidth);
+                return; // drawArrow handles its own stroke
+            }
+            drawingCtx.stroke();
+        }
+
+        function drawArrow(ctx, x1, y1, x2, y2, color, lineWidth) {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+
+            // Draw arrowhead
+            const headlen = 10; // length of head in pixels
+            const angle = Math.atan2(y2 - y1, x2 - x1);
+            ctx.lineTo(x2 - headlen * Math.cos(angle - Math.PI / 6), y2 - headlen * Math.sin(angle - Math.PI / 6));
+            ctx.moveTo(x2, y2);
+            ctx.lineTo(x2 - headlen * Math.cos(angle + Math.PI / 6), y2 - headlen * Math.sin(angle + Math.PI / 6));
+            ctx.stroke();
+        }
+
+
+        function clearDrawingCanvas() {
+            drawnShapes = []; // Clear all drawn shapes
+            redrawCanvas(); // Redraw to show only the original image
+        }
+
+        async function openDrawingModal(photoIndex) {
+            currentEditingPhotoIndex = photoIndex;
+            const modalOverlay = document.getElementById('drawingModalOverlay');
+            modalOverlay.style.display = 'flex';
+            drawnShapes = []; // Clear shapes from previous edits
+
+            const photoInputId = `foto${photoIndex + 1}`;
+            const fileInput = document.getElementById(photoInputId);
+            let imageDataUrl = null;
+
+            // Prioriza a imagem já editada, depois a do preview, depois a do input
+            if (editedPhotoDataUrls[photoIndex]) {
+                imageDataUrl = editedPhotoDataUrls[photoIndex];
+            } else {
+                const previewImg = document.querySelector(`#previewFotos img[data-input-id="${photoInputId}"]`);
+                if (previewImg && previewImg.src) {
+                    imageDataUrl = previewImg.src;
+                } else if (fileInput && fileInput.files && fileInput.files[0]) {
+                    imageDataUrl = await compressImage(fileInput.files[0]);
+                }
+            }
+
+            if (imageDataUrl) {
+                const img = new Image();
+                img.src = imageDataUrl;
+                img.onload = () => {
+                    // Redimensiona o canvas para a imagem ou um tamanho máximo
+                    const maxWidth = 600; // Max width for drawing canvas
+                    const maxHeight = 450; // Max height for drawing canvas
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+                    if (height > maxHeight) {
+                        width = Math.round((width * maxHeight) / height);
+                        height = maxHeight;
+                    }
+
+                    drawingCanvas.width = width;
+                    drawingCanvas.height = height;
+                    drawingCanvas.originalImage = img; // Armazena a imagem original no canvas
+                    redrawCanvas(); // Desenha a imagem original
+                };
+                img.onerror = () => {
+                    alert("Erro ao carregar imagem para edição.");
+                    cancelDrawing();
+                };
+            } else {
+                alert("Nenhuma imagem selecionada para editar.");
+                cancelDrawing();
+            }
+        }
+
+        function saveDrawing() {
+            if (currentEditingPhotoIndex !== -1) {
+                const dataUrl = drawingCanvas.toDataURL('image/png'); // Salva como PNG para manter transparência do desenho
+                editedPhotoDataUrls[currentEditingPhotoIndex] = dataUrl;
+
+                // Atualiza a pré-visualização no formulário com a imagem editada
+                const photoInputId = `foto${currentEditingPhotoIndex + 1}`;
+                const previewImgElement = document.querySelector(`#previewFotos img[data-input-id="${photoInputId}"]`);
+                if (previewImgElement) {
+                    previewImgElement.src = dataUrl;
+                }
+            }
+            closeDrawingModal();
+        }
+
+        function cancelDrawing() {
+            closeDrawingModal();
+        }
+
+        function closeDrawingModal() {
+            document.getElementById('drawingModalOverlay').style.display = 'none';
+            currentEditingPhotoIndex = -1;
+            drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height); // Limpa o canvas
+            drawingCanvas.originalImage = null; // Limpa a referência da imagem original
+            drawnShapes = []; // Garante que as formas sejam limpas ao fechar o modal
+        }
+        // --- FIM DA LÓGICA DO MODAL DE DESENHO ---
+
 
         // Event Listener para preencher os previews das fotos
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             const previewFotosDiv = document.getElementById('previewFotos');
             const inputFotos = ['foto1', 'foto2', 'foto3', 'foto4'];
 
-            inputFotos.forEach(id => {
+            // Setup do canvas de desenho
+            setupDrawingCanvas();
+
+            inputFotos.forEach((id, index) => {
                 const inputElement = document.getElementById(id);
+                const descriptionElement = document.getElementById(`descricao${id.charAt(0).toUpperCase() + id.slice(1)}`); // e.g., descricaoFoto1
+                
+                // Carrega descrições salvas (se houver)
+                descriptionElement.value = photoDescriptions[index];
+
+                // Event listener para atualizar a descrição
+                descriptionElement.addEventListener('input', (event) => {
+                    photoDescriptions[index] = event.target.value;
+                });
+
                 if (inputElement) {
-                    inputElement.addEventListener('change', function(event) {
-                        const existingImg = previewFotosDiv.querySelector(`img[data-input-id="${id}"]`);
-                        if (existingImg) {
-                            existingImg.remove();
+                    inputElement.addEventListener('change', async function(event) {
+                        const existingPhotoItem = previewFotosDiv.querySelector(`.photo-item[data-input-id="${id}"]`);
+                        if (existingPhotoItem) {
+                            existingPhotoItem.remove();
                         }
+                        // Limpa qualquer edição anterior para esta foto
+                        editedPhotoDataUrls[index] = null;
 
                         if (event.target.files && event.target.files[0]) {
-                            const reader = new FileReader();
-                            reader.onload = function(e) {
-                                const img = document.createElement('img');
-                                img.src = e.target.result;
-                                img.dataset.inputId = id;
-                                previewFotosDiv.appendChild(img);
-                            };
-                            reader.readAsDataURL(event.target.files[0]);
+                            const file = event.target.files[0];
+                            const compressedDataUrl = await compressImage(file);
+
+                            const photoItemDiv = document.createElement('div');
+                            photoItemDiv.classList.add('photo-item');
+                            photoItemDiv.dataset.inputId = id;
+
+                            const img = document.createElement('img');
+                            img.src = compressedDataUrl;
+                            img.dataset.inputId = id; // Para referência no PDF
+
+                            const actionsDiv = document.createElement('div');
+                            actionsDiv.classList.add('photo-actions');
+
+                            const editButton = document.createElement('button');
+                            editButton.textContent = 'Editar Desenho';
+                            editButton.type = 'button';
+                            editButton.addEventListener('click', () => openDrawingModal(index));
+
+                            const clearButton = document.createElement('button');
+                            clearButton.textContent = 'Limpar Foto';
+                            clearButton.type = 'button';
+                            clearButton.style.backgroundColor = '#dc3545'; // Cor para limpar
+                            clearButton.addEventListener('click', () => {
+                                // Limpa o input file
+                                inputElement.value = '';
+                                // Remove o item de pré-visualização
+                                photoItemDiv.remove();
+                                // Limpa a descrição e a imagem editada
+                                descriptionElement.value = '';
+                                photoDescriptions[index] = '';
+                                editedPhotoDataUrls[index] = null;
+                            });
+
+                            actionsDiv.appendChild(editButton);
+                            actionsDiv.appendChild(clearButton);
+
+                            photoItemDiv.appendChild(img);
+                            photoItemDiv.appendChild(actionsDiv); // Adiciona os botões ao item
+                            previewFotosDiv.appendChild(photoItemDiv);
                         }
                     });
                 }
@@ -1152,8 +1785,7 @@
             // O `Plantio` será tratado dentro de `applyTreeFieldVisibility`
 
             // --- CHAMADA INICIAL PARA PREENCHER O NÚMERO DO RELATÓRIO AO CARREGAR A PÁGINA ---
-            document.getElementById("numero").value = getNextReportNumber();
-
+            displayCurrentReportNumber();
         });
 
         // Event listener para o botão "Adicionar Árvore"
@@ -1162,7 +1794,12 @@
 
         // Função principal para gerar o PDF
         async function gerarPDF() {
-            console.log("📄 Iniciando geração do PDF...");
+            console.log("DEBUG: Função gerarPDF() iniciada. Isso só deve acontecer ao clicar em '
+
+
+
+
+'.");
             const doc = new jsPDF();
             // A função get foi ajustada para os novos IDs
             const get = id => document.getElementById(id)?.value || "";
@@ -1261,34 +1898,36 @@
             // --- Coleta e adição dos dados das Árvores ao PDF ---
             const arvoresParaPdf = [];
             arvoresData.forEach((arvoreDataEntry, index) => {
-                const arvoreDiv = document.getElementById(arvoreDataEntry.id);
-                if (arvoreDiv) {
-                    const arvoreNumId = arvoreDiv.id.split('-')[1];
-
-                    const especie = arvoreDiv.querySelector(`#especie-${arvoreNumId}`).value;
-                    const quantidade = arvoreDiv.querySelector(`#quantidade-${arvoreNumId}`).value;
-                    const posicao = arvoreDiv.querySelector(`#posicao-${arvoreNumId}`).value;
-                    const altura = arvoreDiv.querySelector(`#altura-${arvoreNumId}`).value;
-                    const cap = arvoreDiv.querySelector(`#cap-${arvoreNumId}`).value;
-                    const obsArvore = arvoreDiv.querySelector(`#obsArvore-${arvoreNumId}`).value;
-
-                    const isPlantio = (servicoSelecionado === 'Plantio');
-                    const isFilledForPlantio = especie && quantidade !== "" && posicao;
-                    const isFilledForOtherServices = especie && quantidade !== "" && posicao && altura !== ""; // CAP is now optional
-
-                    if ((isPlantio && isFilledForPlantio) || (!isPlantio && isFilledForOtherServices)) {
-                        arvoresParaPdf.push({
-                            numero: index + 1,
-                            especie,
-                            quantidade,
-                            posicao,
-                            altura: isPlantio ? "N/A" : (altura || "N/A"), // Fallback if empty
-                            cap: isPlantio ? "N/A" : (cap || "N/A"), // Fallback if empty
-                            diagnoses: isPlantio ? [] : arvoreDataEntry.diagnoses,
-                            indications: isPlantio ? [] : arvoreDataEntry.indications,
-                            obsArvore: obsArvore
-                        });
+                const isPlantio = (servicoSelecionado === 'Plantio');
+                
+                // Validação para determinar se a árvore deve ser incluída no PDF
+                let shouldIncludeTree = false;
+                if (isPlantio) {
+                    // Para plantio, os campos essenciais são especie, quantidade, posicao e aberturaAreaLivre
+                    if (arvoreDataEntry.especie && arvoreDataEntry.quantidade !== "" && arvoreDataEntry.posicao && arvoreDataEntry.aberturaAreaLivre) {
+                        shouldIncludeTree = true;
                     }
+                } else {
+                    // Para outros serviços, especie, quantidade, posicao e altura devem estar preenchidos
+                    if (arvoreDataEntry.especie && arvoreDataEntry.quantidade !== "" && arvoreDataEntry.posicao && arvoreDataEntry.altura !== "") {
+                        shouldIncludeTree = true;
+                    }
+                }
+
+                if (shouldIncludeTree) {
+                    arvoresParaPdf.push({
+                        numero: index + 1,
+                        especie: arvoreDataEntry.especie,
+                        quantidade: arvoreDataEntry.quantidade,
+                        posicao: arvoreDataEntry.posicao,
+                        altura: isPlantio ? "N/A" : (arvoreDataEntry.altura || "N/A"), // Fallback if empty
+                        cap: isPlantio ? "N/A" : (arvoreDataEntry.cap || "N/A"), // Fallback if empty
+                        diagnoses: isPlantio ? [] : arvoreDataEntry.diagnoses,
+                        indications: isPlantio ? [] : arvoreDataEntry.indications,
+                        obsArvore: arvoreDataEntry.obsArvore,
+                        aberturaAreaLivre: arvoreDataEntry.aberturaAreaLivre, // NOVO: para PDF
+                        larguraCalcada: arvoreDataEntry.larguraCalcada // NOVO: para PDF
+                    });
                 }
             });
 
@@ -1356,16 +1995,18 @@
 
                 // Loop para detalhes de cada árvore
                 for (const arvore of arvoresParaPdf) {
-                    y += 5;
+                    y += 3; 
                     let estimatedDetailHeight = 0;
 
                     // Calcula a altura estimada para os detalhes da árvore para verificar quebra de página
                     if (servicoSelecionado === 'Plantio') {
-                        // Apenas Abertura de Área Livre e Largura da Calçada para Plantio
-                        const aberturaAreaLivre = document.getElementById("aberturaAreaLivre").value; // Correção: Pegar do elemento global
-                        const larguraCalcada = document.getElementById("larguraCalcada").value; // Correção: Pegar do elemento global
-                        if (aberturaAreaLivre) estimatedDetailHeight += 8; // Linha para Abertura de Área Livre
-                        if (larguraCalcada !== "") estimatedDetailHeight += 8; // Linha para Largura da Calçada
+                        // NOVO: Campos de plantio por árvore
+                        if (arvore.aberturaAreaLivre) estimatedDetailHeight += 8; // Linha para Abertura de Área Livre
+                        
+                        // NOVO: Usa a mesma lógica de visibilidade para estimar a altura
+                        const shouldEstimateLarguraCalcada = (arvore.aberturaAreaLivre === 'Área pavimentada' || arvore.posicao === 'Calçada');
+                        
+                        if (shouldEstimateLarguraCalcada) estimatedDetailHeight += 8; // Linha para Largura da Calçada
                         estimatedDetailHeight += 10; // Espaço extra
                     } else { // Diagnóstico e Indicação para outros serviços
                         if (arvore.diagnoses && arvore.diagnoses.length > 0) estimatedDetailHeight += arvore.diagnoses.length * 4;
@@ -1397,25 +2038,27 @@
 
                     // ADICIONA CAMPOS DE PLANTIO DENTRO DOS DETALHES DA ÁRVORE (SE FOR PLANTIO)
                     if (servicoSelecionado === 'Plantio') {
-                        const aberturaAreaLivre = document.getElementById("aberturaAreaLivre").value;
-                        const larguraCalcada = document.getElementById("larguraCalcada").value;
-
-                        if (aberturaAreaLivre) {
+                        // NOVO: Usa os dados da árvore atual
+                        if (arvore.aberturaAreaLivre) {
                             doc.setFont('helvetica', 'bold');
                             doc.setTextColor("#2e7d32");
                             doc.text("Abertura de Área Livre:", marginX + 5, y);
                             doc.setTextColor(0, 0, 0);
                             doc.setFont('helvetica', 'normal');
-                            doc.text(aberturaAreaLivre, marginX + 10, y + 4);
+                            doc.text(arvore.aberturaAreaLivre, marginX + 10, y + 4);
                             y += 8;
                         }
-                        if (larguraCalcada !== "") { // Check for empty string, not just truthiness for 0
+                        // NOVO: Usa os dados da árvore atual e a nova lógica de visibilidade
+                        const shouldDisplayLarguraCalcadaInPdf = (arvore.aberturaAreaLivre === 'Área pavimentada' || arvore.posicao === 'Calçada');
+
+                        if (shouldDisplayLarguraCalcadaInPdf) {
                             doc.setFont('helvetica', 'bold');
                             doc.setTextColor("#2e7d32");
                             doc.text("Largura da Calçada:", marginX + 5, y);
                             doc.setTextColor(0, 0, 0);
                             doc.setFont('helvetica', 'normal');
-                            doc.text(`${larguraCalcada} m`, marginX + 10, y + 4);
+                            // Exibe o valor ou "N/A" se estiver vazio/nulo
+                            doc.text(`${arvore.larguraCalcada !== null && arvore.larguraCalcada !== "" ? arvore.larguraCalcada + ' m' : 'N/A'}`, marginX + 10, y + 4);
                             y += 8;
                         }
                         y += 3; // Espaçamento após os campos de plantio, se existirem
@@ -1467,8 +2110,9 @@
                         doc.setTextColor(0, 0, 0);
                         doc.setFont('helvetica', 'normal');
                         y += 4;
+                        // Define obsSplitted aqui, antes de usá-lo
                         const obsSplitted = doc.splitTextToSize(obsArvoreContent, pageWidth - (2 * marginX) - 10);
-                        doc.text(obsSplitted, marginX + 10, y);
+                        doc.text(obsSplitted, marginX + 10, y, { align: "justify", maxWidth: pageWidth - (2 * marginX) - 10 });
                         y += obsSplitted.length * (doc.getLineHeight() / doc.internal.scaleFactor);
                         y += 3;
                     }
@@ -1555,7 +2199,7 @@
                     doc.setFont('helvetica', 'normal');
                     y += 8;
                     doc.setFontSize(9);
-                    doc.text("Não foi possível carregar o mapa.", marginX, y);
+                    doc.text("Localização não disponível.", marginX, y);
                     y += 10;
                 }
             } else {
@@ -1593,19 +2237,24 @@
             const photoColumnSpacing = 10; // Espaçamento entre as duas colunas de fotos
             
             // Calculando a largura disponível para duas colunas de fotos
-            let photoColumnWidth = (pageWidth - (2 * photoSideMargin) - photoColumnSpacing) / 2;
-            let photoAspectRatio = 0.75; // Assumindo proporção 4:3 (altura = largura * 0.75)
+            // Subtraindo um pequeno valor para tentar forçar melhor justificação
+            let photoColumnWidth = ((pageWidth - (2 * photoSideMargin) - photoColumnSpacing) / 2) - 2;
+            let photoAspectRatio = 0.75; // Assumindo proporção 4:3 (altura = largura = 0.75)
             let photoHeight = photoColumnWidth * photoAspectRatio;
             let currentPhotoY_photos = marginYTop + 20; // Ponto inicial Y para as fotos
 
             for (let i = 0; i < fotos.length; i++) {
                 const id = fotos[i];
                 const fileInput = document.getElementById(id);
-                if (fileInput && fileInput.files && fileInput.files[0]) {
-                    const file = fileInput.files[0];
-                    let imageDataUrl = null;
+                const description = photoDescriptions[i] || ''; // Obtém a descrição
+                let imageDataUrl = null;
+
+                // Prioriza a imagem editada, se existir
+                if (editedPhotoDataUrls[i]) {
+                    imageDataUrl = editedPhotoDataUrls[i];
+                } else if (fileInput && fileInput.files && fileInput.files[0]) {
                     try {
-                        imageDataUrl = await compressImage(file);
+                        imageDataUrl = await compressImage(fileInput.files[0]);
                     } catch (error) {
                         console.warn(`⚠️ Erro ao comprimir foto ${id}. Tentando sem compressão.`, error);
                         try {
@@ -1613,46 +2262,61 @@
                                 const reader = new FileReader();
                                 reader.onload = (e) => resolve(e.target.result);
                                 reader.onerror = reject;
-                                reader.readAsDataURL(file);
+                                reader.readAsDataURL(fileInput.files[0]);
                             });
                         } catch (readError) {
                             console.error(`❌ Erro fatal ao carregar foto ${id}:`, readError);
                             imageDataUrl = null;
                         }
                     }
+                }
 
-                    if (imageDataUrl) {
-                        const col = i % 2;
-                        let posX;
-                        if (col === 0) { // Primeira coluna
-                            posX = photoSideMargin;
-                        } else { // Segunda coluna
-                            posX = photoSideMargin + photoColumnWidth + photoColumnSpacing;
-                        }
-
-                        const photoBlockTotalHeight = photoHeight + 15; // Altura da foto + espaço para legenda
-
-                        // Verifica se a próxima foto (ou par de fotos) cabe na página
-                        if (col === 0 && (currentPhotoY_photos + photoBlockTotalHeight > pageHeight - marginYBottom)) {
-                            doc.addPage();
-                            addFooter(doc, responsavelTecnico, dataFormatada);
-                            doc.setFontSize(16);
-                            doc.text("REGISTRO FOTOGRÁFICO (Continuação)", pageWidth / 2, marginYTop, { align: "center" });
-                            doc.line(marginX, marginYTop + 8, pageWidth - marginX, marginYTop + 8);
-                            currentPhotoY_photos = marginYTop + 20; // Reinicia Y para nova página
-                        }
-
-                        doc.addImage(imageDataUrl, "JPEG", posX, currentPhotoY_photos, photoColumnWidth, photoHeight);
-                        doc.setFontSize(9);
-                        doc.text(`Foto ${i + 1}`, posX + photoColumnWidth / 2, currentPhotoY_photos + photoHeight + 5, { align: "center" });
-
-                        if (col === 1) {
-                             // Após a segunda foto na linha, avança para a próxima linha
-                             currentPhotoY_photos += photoHeight + 25; // Espaço entre as linhas de fotos (foto + legenda + espaço)
-                        }
-                    } else {
-                        console.warn(`Foto ${id} não pôde ser processada e não foi adicionada ao PDF.`);
+                if (imageDataUrl) {
+                    const col = i % 2;
+                    let posX;
+                    if (col === 0) { // Primeira coluna
+                        posX = photoSideMargin;
+                    } else { // Segunda coluna
+                        posX = photoSideMargin + photoColumnWidth + photoColumnSpacing;
                     }
+
+                    // Estima a altura da descrição para verificar quebra de página
+                    const descriptionLines = doc.splitTextToSize(description, photoColumnWidth);
+                    const descriptionHeight = descriptionLines.length * (doc.getLineHeight() / doc.internal.scaleFactor) + 5; // +5 para padding
+
+                    const photoBlockTotalHeight = photoHeight + descriptionHeight + 15; // Altura da foto + descrição + espaço
+
+                    // Verifica se a próxima foto (ou par de fotos) cabe na página
+                    if (col === 0 && (currentPhotoY_photos + photoBlockTotalHeight > pageHeight - marginYBottom)) {
+                        doc.addPage();
+                        addFooter(doc, responsavelTecnico, dataFormatada);
+                        doc.setFontSize(16);
+                        doc.text("REGISTRO FOTOGRÁFICO (Continuação)", pageWidth / 2, marginYTop, { align: "center" });
+                        doc.line(marginX, marginYTop + 8, pageWidth - marginX, marginYTop + 8);
+                        currentPhotoY_photos = marginYTop + 20; // Reinicia Y para nova página
+                    }
+
+                    doc.addImage(imageDataUrl, "PNG", posX, currentPhotoY_photos, photoColumnWidth, photoHeight);
+                    doc.setFontSize(9);
+                    
+                    // Adiciona a descrição da foto, com alinhamento inteligente
+                    if (description.trim() !== "") {
+                        let currentTextY = currentPhotoY_photos + photoHeight + 5;
+
+                        for (let lineIndex = 0; lineIndex < descriptionLines.length; lineIndex++) {
+                            const line = descriptionLines[lineIndex];
+                            // Sempre tenta justificar. O jsPDF lida com a última linha curta.
+                            doc.text(line, posX, currentTextY, { align: "justify", maxWidth: photoColumnWidth });
+                            currentTextY += doc.getLineHeight() / doc.internal.scaleFactor;
+                        }
+                    }
+
+                    if (col === 1) {
+                         // Após a segunda foto na linha, avança para a próxima linha
+                         currentPhotoY_photos += photoHeight + descriptionHeight + 15; // Espaço entre as linhas de fotos (foto + descrição + espaço)
+                    }
+                } else {
+                    console.warn(`Foto ${id} não pôde ser processada e não foi adicionada ao PDF.`);
                 }
             }
             console.log("🖼️ Todas as fotos foram processadas.");
@@ -1661,35 +2325,15 @@
             doc.save(`relatorio_${numeroRelatorio.replace('/', '-')}.pdf`);
         }
 
-        // Event Listener para o formulário
-        document.getElementById("formRelatorio").addEventListener("submit", async function(e) {
-            e.preventDefault();
+        // NOVO EVENT LISTENER PARA O BOTÃO "Gerar PDF"
+        document.getElementById("btnGerarPdf").addEventListener("click", async function(e) {
+            e.preventDefault(); // Previne qualquer comportamento padrão do botão
 
             const btn = document.getElementById('btnGerarPdf');
             const loadingMsg = document.getElementById('loadingMessage');
 
             const servicoSelecionado = document.getElementById('servico').value;
             let allFieldsValid = true; // Flag geral de validação
-
-            // Validação dos campos de Plantio específicos, se o serviço for Plantio
-            if (servicoSelecionado === 'Plantio') {
-                const aberturaAreaLivre = document.getElementById('aberturaAreaLivre').value;
-                const larguraCalcada = document.getElementById('larguraCalcada').value;
-
-                if (!aberturaAreaLivre) {
-                    alert("Por favor, selecione uma opção para 'Abertura de Área Livre'.");
-                    document.getElementById('aberturaAreaLivre').focus();
-                    allFieldsValid = false;
-                } else if (larguraCalcada === "") { // Largura pode ser 0, mas não vazia
-                    alert("Por favor, insira a 'Largura da Calçada'. Use 0 se não aplicável.");
-                    document.getElementById('larguraCalcada').focus();
-                    allFieldsValid = false;
-                }
-            }
-
-            if (!allFieldsValid) {
-                return; // Impede a continuação se os novos campos de plantio não estiverem preenchidos
-            }
 
             // Validação dos campos de árvore dinamicamente
             let allArvoreFieldsFilled = true;
@@ -1707,23 +2351,32 @@
                     const quantidade = item.querySelector(`#quantidade-${arvoreNumId}`).value;
                     const posicao = item.querySelector(`#posicao-${arvoreNumId}`).value;
 
-                    let altura = "";
-                    if (!isPlantio) {
-                        altura = item.querySelector(`#altura-${arvoreNumId}`).value;
-                    }
-                    // CAP is now optional, so no need to check here
-
                     let currentTreeFieldsValid = true;
                     if (!especie || quantidade === "" || !posicao) {
                         currentTreeFieldsValid = false;
                     }
-                    if (!isPlantio && altura === "") { // Only height is required for non-plantio services
-                        currentTreeFieldsValid = false;
+
+                    if (isPlantio) {
+                        const aberturaAreaLivre = item.querySelector(`#aberturaAreaLivre-${arvoreNumId}`).value;
+                        const larguraCalcadaInput = item.querySelector(`#larguraCalcada-${arvoreNumId}`);
+                        const larguraCalcada = larguraCalcadaInput.value;
+
+                        // A largura da calçada só é obrigatória se estiver visível
+                        const isLarguraCalcadaVisible = larguraCalcadaInput.style.display !== 'none';
+
+                        if (!aberturaAreaLivre || (isLarguraCalcadaVisible && larguraCalcada === "")) {
+                            currentTreeFieldsValid = false;
+                        }
+                    } else {
+                        const altura = item.querySelector(`#altura-${arvoreNumId}`).value;
+                        if (altura === "") { // Altura é obrigatória para não-plantio
+                            currentTreeFieldsValid = false;
+                        }
                     }
 
                     if (!currentTreeFieldsValid) {
                         allArvoreFieldsFilled = false;
-                        item.style.border = '2px solid red';
+                        item.style.border = '22px solid red';
                     } else {
                         item.style.border = '1px solid #e0e0e0';
                     }
@@ -1731,7 +2384,7 @@
             }
 
             if (!allArvoreFieldsFilled) {
-                alert("Por favor, preencha todos os campos obrigatórios das árvores.");
+                alert("Por favor, preencha todos os campos obrigatórios das árvores (incluindo informações de plantio, se aplicável).");
                 return;
             }
 
@@ -1772,28 +2425,11 @@
                 return;
             }
 
-            if (!this.checkValidity()) {
-                alert("Por favor, preencha todos os campos obrigatórios.");
-                return;
-            }
-
-
             btn.disabled = true;
             loadingMsg.style.display = 'block';
 
             try {
                 await gerarPDF();
-                // Lógica MOVIDA/ADICIONADA AQUI: Salva o número do relatório atual e define o próximo
-                const currentReportNumberString = document.getElementById("numero").value; // Ex: "40/2025"
-                const parts = currentReportNumberString.split('/');
-                const currentNumber = parseInt(parts[0]);
-                const currentYear = parseInt(parts[1]);
-
-                localStorage.setItem('arborizaAppReportNumber', JSON.stringify({
-                    number: currentNumber,
-                    year: currentYear
-                }));
-                document.getElementById("numero").value = getNextReportNumber(); // Obtém o próximo número para o campo
 
             } catch (error) {
                 console.error("Erro geral ao gerar PDF:", error);
@@ -1803,6 +2439,7 @@
                 loadingMsg.style.display = 'none';
             }
         });
+
 
         // --- FUNÇÃO ADICIONADA: Limpa o formulário, EXCETO o número do relatório ---
         function resetFormularioAposPdf() {
@@ -1821,11 +2458,6 @@
             document.getElementById('tecnico').value = '';
             document.getElementById('dataFinal').value = ''; // Limpa a data
 
-            // Limpa e oculta campos de plantio se visíveis
-            document.getElementById('plantioFieldsContainer').style.display = 'none';
-            document.getElementById('aberturaAreaLivre').value = '';
-            document.getElementById('larguraCalcada').value = '';
-
             // Limpa localização
             if (mapa) { // Verifica se o mapa foi inicializado
                 mapa.remove(); // Remove o mapa Leaflet
@@ -1838,16 +2470,17 @@
 
             // Limpa as entradas de fotos e previews
             const inputFotos = ['foto1', 'foto2', 'foto3', 'foto4'];
-            inputFotos.forEach(id => {
+            inputFotos.forEach((id, index) => {
                 const inputElement = document.getElementById(id);
                 if (inputElement) {
                     inputElement.value = ''; // Limpa o input file
                 }
+                // Limpa a descrição e a imagem editada
+                document.getElementById(`descricao${id.charAt(0).toUpperCase() + id.slice(1)}`).value = '';
+                photoDescriptions[index] = '';
+                editedPhotoDataUrls[index] = null;
             });
             document.getElementById('previewFotos').innerHTML = ''; // Limpa as pré-visualizações
-
-            // REMOVIDO: Limpa o campo de observações gerais explicitamente, pois o campo foi removido do HTML
-            // document.getElementById('observacoesCampo').value = '';
 
             // Garante que o input de número de referência condicional seja ocultado novamente, se "Demanda Interna" for o default
             const tipoRef = document.getElementById('tipoReferencia').value;
@@ -1861,16 +2494,15 @@
             // Chama applyTreeFieldVisibility para garantir que o estado inicial dos campos da árvore esteja correto
             applyTreeFieldVisibility();
 
-            alert("Formulário limpo! Pronto para registrar a próxima árvore. O número do relatório foi atualizado.");
+            // --- ALTERAÇÃO AQUI: Atualiza o número do relatório ao limpar o formulário ---
+            incrementAndDisplayNextReportNumber();
+
+            // Substituído alert por console.log para não interromper o fluxo
+            console.log("Formulário limpo! Pronto para registrar a próxima árvore. O número do relatório foi atualizado.");
         }
 
         // --- EVENT LISTENER PARA O NOVO BOTÃO DE LIMPAR ---
         document.getElementById('limparParaProximaArvoreBtn').addEventListener('click', resetFormularioAposPdf);
-
-        // REMOVIDO: O event listener para o botão de transcrever voz para o campo Observações Gerais
-        // document.getElementById('transcreverVozBtn').addEventListener('click', () => {
-        //     transcreverVozParaTexto('observacoesCampo');
-        // });
     </script>
 </body>
 </html>
