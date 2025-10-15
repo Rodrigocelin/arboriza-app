@@ -122,18 +122,6 @@
             flex-wrap: wrap; /* Garante que as fotos quebrem a linha */
             justify-content: center; /* Centraliza as fotos */
         }
-        .preview-fotos .photo-item { /* Novo container para foto + descrição + botões */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
-            margin-bottom: 15px;
-            border: 1px solid #e0e0e0;
-            padding: 10px;
-            border-radius: 8px;
-            background-color: #fff;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
         .preview-fotos img {
             width: 120px; /* Tamanho ligeiramente maior para desktop */
             height: 90px;
@@ -142,28 +130,6 @@
             border: 1px solid #ccc;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        .preview-fotos textarea { /* Estilo para o campo de descrição da foto */
-            width: 100%;
-            min-height: 40px;
-            font-size: 0.9em;
-            resize: vertical;
-            margin-top: 5px;
-        }
-        .preview-fotos .photo-actions {
-            display: flex;
-            gap: 5px;
-            margin-top: 5px;
-        }
-        .preview-fotos .photo-actions button {
-            margin: 0;
-            padding: 5px 10px;
-            font-size: 0.8em;
-            background-color: #007bff;
-        }
-        .preview-fotos .photo-actions button:hover {
-            background-color: #0056b3;
-        }
-
         #loadingMessage, #loadingLocation {
             display: none;
             color: #43a047;
@@ -303,90 +269,6 @@
             flex-shrink: 0;
         }
 
-        /* Estilos para o Modal de Desenho */
-        .drawing-modal-overlay {
-            display: none; /* Oculto por padrão */
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .drawing-modal-content {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            max-width: 90%;
-            max-height: 90%;
-            overflow: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .drawing-modal-content canvas {
-            border: 1px solid #ccc;
-            background-color: #f0f0f0;
-            max-width: 100%;
-            height: auto;
-            display: block;
-            margin: 0 auto;
-        }
-
-        .drawing-controls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .drawing-controls input[type="color"] {
-            width: 50px;
-            height: 30px;
-            padding: 0;
-            border: none;
-        }
-
-        .drawing-controls input[type="range"] {
-            width: 100px;
-        }
-
-        .drawing-controls button {
-            margin-top: 0;
-            padding: 8px 15px;
-            font-size: 0.9em;
-        }
-        .drawing-controls button.cancel-button {
-            background-color: #f44336;
-        }
-        .drawing-controls button.cancel-button:hover {
-            background-color: #d32222;
-        }
-        /* Estilos para os botões de ferramenta de desenho */
-        .tool-button {
-            background-color: #6c757d; /* Cinza para ferramentas inativas */
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 8px 12px;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-        }
-        .tool-button.active {
-            background-color: #43a047; /* Verde para a ferramenta ativa */
-        }
-        .tool-button:hover {
-            background-color: #5a6268;
-        }
-
-
         /* Media Queries para Responsividade */
         @media (max-width: 768px) {
             body {
@@ -417,15 +299,9 @@
             .preview-fotos {
                 gap: 10px;
             }
-            .preview-fotos .photo-item {
-                padding: 8px;
-            }
             .preview-fotos img {
                 width: 90px;
                 height: 67px;
-            }
-            .preview-fotos textarea {
-                font-size: 0.85em;
             }
             .arvore-item {
                 padding: 15px;
@@ -490,16 +366,6 @@
                 display: block; /* Força botões a ocuparem linha inteira em telas pequenas */
                 margin-left: 0;
                 margin-right: 0;
-                width: 100%;
-            }
-            .drawing-modal-content {
-                padding: 10px;
-            }
-            .drawing-controls {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .drawing-controls input[type="range"] {
                 width: 100%;
             }
         }
@@ -639,23 +505,10 @@
         <div id="mapaInterativo"></div>
 
         <label>Fotos do Local (até 4):</label>
-        <!-- Cada input de foto agora tem um container para a pré-visualização, descrição e botão de edição -->
-        <div class="photo-input-group">
-            <input type="file" id="foto1" accept="image/*" capture="environment" />
-            <textarea id="descricaoFoto1" rows="2" placeholder="Descrição da Foto 1"></textarea>
-        </div>
-        <div class="photo-input-group">
-            <input type="file" id="foto2" accept="image/*" capture="environment" />
-            <textarea id="descricaoFoto2" rows="2" placeholder="Descrição da Foto 2"></textarea>
-        </div>
-        <div class="photo-input-group">
-            <input type="file" id="foto3" accept="image/*" capture="environment" />
-            <textarea id="descricaoFoto3" rows="2" placeholder="Descrição da Foto 3"></textarea>
-        </div>
-        <div class="photo-input-group">
-            <input type="file" id="foto4" accept="image/*" capture="environment" />
-            <textarea id="descricaoFoto4" rows="2" placeholder="Descrição da Foto 4"></textarea>
-        </div>
+        <input type="file" id="foto1" accept="image/*" capture="environment" />
+        <input type="file" id="foto2" accept="image/*" capture="environment" />
+        <input type="file" id="foto3" accept="image/*" capture="environment" />
+        <input type="file" id="foto4" accept="image/*" capture="environment" />
         <div id="previewFotos" class="preview-fotos"></div>
 
         <label for="tecnico">Responsável Técnico:</label>
@@ -669,28 +522,6 @@
         <div id="loadingMessage">Gerando PDF, aguarde...</div>
     </form>
 
-    <!-- Modal de Desenho -->
-    <div id="drawingModalOverlay" class="drawing-modal-overlay">
-        <div class="drawing-modal-content">
-            <h3>Editar Desenho</h3>
-            <canvas id="drawingCanvas"></canvas>
-            <div class="drawing-controls">
-                <label>Ferramenta:</label>
-                <button type="button" id="toolLineBtn" class="tool-button active" data-tool="line">Linha</button>
-                <button type="button" id="toolCircleBtn" class="tool-button" data-tool="circle">Círculo</button>
-                <button type="button" id="toolArrowBtn" class="tool-button" data-tool="arrow">Seta</button>
-
-                <label for="brushColor">Cor:</label>
-                <input type="color" id="brushColor" value="#FF0000">
-                <label for="brushSize">Tamanho:</label>
-                <input type="range" id="brushSize" min="1" max="20" value="5">
-                <button type="button" id="clearCanvasBtn">Limpar</button>
-                <button type="button" id="saveDrawingBtn">Salvar</button>
-                <button type="button" id="cancelDrawingBtn" class="cancel-button">Cancelar</button>
-            </div>
-        </div>
-    </div>
-
     <script>
         const { jsPDF } = window.jspdf;
         let mapa, marcador, latGlobal, lngGlobal;
@@ -698,19 +529,6 @@
         // Armazena os dados das árvores, incluindo seus diagnósticos, indicações e OBS
         let arvoresData = [];
         let arvoreCounter = 0; // Para dar IDs únicos a cada conjunto de campos de árvore (não para a numeração visual)
-
-        // NOVAS VARIÁVEIS PARA MANIPULAÇÃO DE FOTOS E DESENHO
-        let photoDescriptions = ['', '', '', '']; // Array para armazenar as descrições das 4 fotos
-        let editedPhotoDataUrls = [null, null, null, null]; // Armazena as Data URLs das fotos editadas
-        let currentEditingPhotoIndex = -1; // Índice da foto atualmente sendo editada no modal
-
-        // Variáveis para o canvas de desenho
-        let drawingCanvas, drawingCtx;
-        let isDrawing = false;
-        let lastX = 0, lastY = 0;
-        let startX = 0, startY = 0; // Para desenhar formas
-        let currentTool = 'line'; // Ferramenta de desenho atual: 'line', 'circle', 'arrow'
-        let drawnShapes = []; // Array para armazenar todas as formas desenhadas (permanentes)
 
         // Função auxiliar para adicionar texto a um campo com quebra de linha
         function appendTextToField(fieldId, text) {
@@ -1248,8 +1066,8 @@
                 diagnoses: [],
                 indications: [],
                 obsArvore: "",
-                aberturaAreaLivre: "", // Adicionado para plantio
-                larguraCalcada: null // Adicionado para plantio
+                aberturaAreaLivre: "", // NOVO: Adicionado para plantio
+                larguraCalcada: null // NOVO: Adicionado para plantio
             });
 
             // Adiciona event listener para o botão remover
@@ -1317,8 +1135,7 @@
                 const field = document.getElementById(targetId);
                 if (field) {
                     field.value = '';
-                    // Não usar alert aqui para não interromper o fluxo
-                    console.log('Campo de observação da árvore limpo!');
+                    alert('Campo de observação da árvore limpo!');
                 }
             });
 
@@ -1385,371 +1202,30 @@
             });
         }
 
-        // --- LÓGICA DO MODAL DE DESENHO ---
-        function setupDrawingCanvas() {
-            drawingCanvas = document.getElementById('drawingCanvas');
-            drawingCtx = drawingCanvas.getContext('2d');
-
-            // Configurações iniciais do pincel
-            drawingCtx.lineWidth = document.getElementById('brushSize').value;
-            drawingCtx.lineCap = 'round';
-            drawingCtx.strokeStyle = document.getElementById('brushColor').value;
-
-            // Event listeners para as ferramentas
-            document.querySelectorAll('.tool-button').forEach(button => {
-                button.addEventListener('click', () => {
-                    document.querySelectorAll('.tool-button').forEach(btn => btn.classList.remove('active'));
-                    button.classList.add('active');
-                    currentTool = button.dataset.tool;
-                    console.log("Ferramenta selecionada:", currentTool);
-                });
-            });
-
-            // Eventos de desenho para mouse
-            drawingCanvas.addEventListener('mousedown', startDrawing);
-            drawingCanvas.addEventListener('mousemove', draw);
-            drawingCanvas.addEventListener('mouseup', stopDrawing);
-            drawingCanvas.addEventListener('mouseout', stopDrawing);
-
-            // Eventos de desenho para toque
-            drawingCanvas.addEventListener('touchstart', (e) => {
-                e.preventDefault(); // Previne o scroll da página
-                startDrawing(e.touches[0]);
-            });
-            drawingCanvas.addEventListener('touchmove', (e) => {
-                e.preventDefault(); // Previne o scroll da página
-                draw(e.touches[0]);
-            });
-            drawingCanvas.addEventListener('touchend', stopDrawing);
-            drawingCanvas.addEventListener('touchcancel', stopDrawing);
-
-            // Event listeners para controles do desenho
-            document.getElementById('brushColor').addEventListener('input', (e) => {
-                drawingCtx.strokeStyle = e.target.value;
-            });
-            document.getElementById('brushSize').addEventListener('input', (e) => {
-                drawingCtx.lineWidth = e.target.value;
-            });
-            document.getElementById('clearCanvasBtn').addEventListener('click', clearDrawingCanvas);
-            document.getElementById('saveDrawingBtn').addEventListener('click', saveDrawing);
-            document.getElementById('cancelDrawingBtn').addEventListener('click', cancelDrawing);
-
-            // Fechar modal clicando fora
-            document.getElementById('drawingModalOverlay').addEventListener('click', (e) => {
-                if (e.target.id === 'drawingModalOverlay') {
-                    cancelDrawing();
-                }
-            });
-        }
-
-        function getCanvasCoordinates(e) {
-            const rect = drawingCanvas.getBoundingClientRect();
-            let x, y;
-            if (e.clientX !== undefined) { // Mouse or Touch event
-                x = e.clientX - rect.left;
-                y = e.clientY - rect.top;
-            } else { // Fallback, though clientX/Y should be present
-                x = e.offsetX;
-                y = e.offsetY;
-            }
-            return { x, y };
-        }
-
-        function startDrawing(e) {
-            isDrawing = true;
-            const { x, y } = getCanvasCoordinates(e);
-            startX = x;
-            startY = y;
-            lastX = x;
-            lastY = y;
-
-            if (currentTool === 'line') {
-                // Para linhas, começamos um novo caminho de pontos
-                drawnShapes.push({
-                    type: 'line',
-                    points: [{ x: startX, y: startY }],
-                    color: drawingCtx.strokeStyle,
-                    lineWidth: drawingCtx.lineWidth
-                });
-            }
-            redrawCanvas(); // Redraw to clear any temporary previous drawing
-        }
-
-        function draw(e) {
-            if (!isDrawing) return;
-
-            const { x, y } = getCanvasCoordinates(e);
-            const currentColor = drawingCtx.strokeStyle;
-            const currentWidth = drawingCtx.lineWidth;
-
-            redrawCanvas(); // Clear and redraw permanent shapes
-
-            // Draw temporary shape
-            drawingCtx.beginPath();
-            drawingCtx.strokeStyle = currentColor;
-            drawingCtx.lineWidth = currentWidth;
-
-            if (currentTool === 'line') {
-                const currentLine = drawnShapes[drawnShapes.length - 1];
-                if (currentLine && currentLine.type === 'line') {
-                    currentLine.points.push({ x, y });
-                    drawShape(currentLine); // Redraw the current evolving line
-                }
-            } else if (currentTool === 'circle') {
-                const radius = Math.sqrt(Math.pow(x - startX, 2) + Math.pow(y - startY, 2));
-                drawingCtx.arc(startX, startY, radius, 0, 2 * Math.PI);
-                drawingCtx.stroke();
-            } else if (currentTool === 'arrow') {
-                drawArrow(drawingCtx, startX, startY, x, y, currentColor, currentWidth);
-            }
-            lastX = x;
-            lastY = y;
-        }
-
-        function stopDrawing(e) {
-            if (!isDrawing) return;
-            isDrawing = false;
-
-            const { x, y } = getCanvasCoordinates(e);
-            const currentColor = drawingCtx.strokeStyle;
-            const currentWidth = drawingCtx.lineWidth;
-
-            if (currentTool === 'line') {
-                // Line points are already added in draw()
-            } else if (currentTool === 'circle') {
-                const radius = Math.sqrt(Math.pow(x - startX, 2) + Math.pow(y - startY, 2));
-                drawnShapes.push({
-                    type: 'circle',
-                    centerX: startX,
-                    centerY: startY,
-                    radius: radius,
-                    color: currentColor,
-                    lineWidth: currentWidth
-                });
-            } else if (currentTool === 'arrow') {
-                drawnShapes.push({
-                    type: 'arrow',
-                    startX: startX,
-                    startY: startY,
-                    endX: x,
-                    endY: y,
-                    color: currentColor,
-                    lineWidth: currentWidth
-                });
-            }
-            redrawCanvas(); // Final redraw with the new permanent shape
-        }
-
-        function redrawCanvas() {
-            drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
-            if (drawingCanvas.originalImage) {
-                drawingCtx.drawImage(drawingCanvas.originalImage, 0, 0, drawingCanvas.width, drawingCanvas.height);
-            }
-
-            drawnShapes.forEach(shape => {
-                drawShape(shape);
-            });
-        }
-
-        function drawShape(shape) {
-            drawingCtx.strokeStyle = shape.color;
-            drawingCtx.lineWidth = shape.lineWidth;
-            drawingCtx.beginPath();
-
-            if (shape.type === 'line') {
-                if (shape.points.length > 0) {
-                    drawingCtx.moveTo(shape.points[0].x, shape.points[0].y);
-                    for (let i = 1; i < shape.points.length; i++) {
-                        drawingCtx.lineTo(shape.points[i].x, shape.points[i].y);
-                    }
-                }
-            } else if (shape.type === 'circle') {
-                drawingCtx.arc(shape.centerX, shape.centerY, shape.radius, 0, 2 * Math.PI);
-            } else if (shape.type === 'arrow') {
-                drawArrow(drawingCtx, shape.startX, shape.startY, shape.endX, shape.endY, shape.color, shape.lineWidth);
-                return; // drawArrow handles its own stroke
-            }
-            drawingCtx.stroke();
-        }
-
-        function drawArrow(ctx, x1, y1, x2, y2, color, lineWidth) {
-            ctx.strokeStyle = color;
-            ctx.lineWidth = lineWidth;
-            ctx.beginPath();
-            ctx.moveTo(x1, y1);
-            ctx.lineTo(x2, y2);
-            ctx.stroke();
-
-            // Draw arrowhead
-            const headlen = 10; // length of head in pixels
-            const angle = Math.atan2(y2 - y1, x2 - x1);
-            ctx.lineTo(x2 - headlen * Math.cos(angle - Math.PI / 6), y2 - headlen * Math.sin(angle - Math.PI / 6));
-            ctx.moveTo(x2, y2);
-            ctx.lineTo(x2 - headlen * Math.cos(angle + Math.PI / 6), y2 - headlen * Math.sin(angle + Math.PI / 6));
-            ctx.stroke();
-        }
-
-
-        function clearDrawingCanvas() {
-            drawnShapes = []; // Clear all drawn shapes
-            redrawCanvas(); // Redraw to show only the original image
-        }
-
-        async function openDrawingModal(photoIndex) {
-            currentEditingPhotoIndex = photoIndex;
-            const modalOverlay = document.getElementById('drawingModalOverlay');
-            modalOverlay.style.display = 'flex';
-            drawnShapes = []; // Clear shapes from previous edits
-
-            const photoInputId = `foto${photoIndex + 1}`;
-            const fileInput = document.getElementById(photoInputId);
-            let imageDataUrl = null;
-
-            // Prioriza a imagem já editada, depois a do preview, depois a do input
-            if (editedPhotoDataUrls[photoIndex]) {
-                imageDataUrl = editedPhotoDataUrls[photoIndex];
-            } else {
-                const previewImg = document.querySelector(`#previewFotos img[data-input-id="${photoInputId}"]`);
-                if (previewImg && previewImg.src) {
-                    imageDataUrl = previewImg.src;
-                } else if (fileInput && fileInput.files && fileInput.files[0]) {
-                    imageDataUrl = await compressImage(fileInput.files[0]);
-                }
-            }
-
-            if (imageDataUrl) {
-                const img = new Image();
-                img.src = imageDataUrl;
-                img.onload = () => {
-                    // Redimensiona o canvas para a imagem ou um tamanho máximo
-                    const maxWidth = 600; // Max width for drawing canvas
-                    const maxHeight = 450; // Max height for drawing canvas
-                    let width = img.width;
-                    let height = img.height;
-
-                    if (width > maxWidth) {
-                        height = Math.round((height * maxWidth) / width);
-                        width = maxWidth;
-                    }
-                    if (height > maxHeight) {
-                        width = Math.round((width * maxHeight) / height);
-                        height = maxHeight;
-                    }
-
-                    drawingCanvas.width = width;
-                    drawingCanvas.height = height;
-                    drawingCanvas.originalImage = img; // Armazena a imagem original no canvas
-                    redrawCanvas(); // Desenha a imagem original
-                };
-                img.onerror = () => {
-                    alert("Erro ao carregar imagem para edição.");
-                    cancelDrawing();
-                };
-            } else {
-                alert("Nenhuma imagem selecionada para editar.");
-                cancelDrawing();
-            }
-        }
-
-        function saveDrawing() {
-            if (currentEditingPhotoIndex !== -1) {
-                const dataUrl = drawingCanvas.toDataURL('image/png'); // Salva como PNG para manter transparência do desenho
-                editedPhotoDataUrls[currentEditingPhotoIndex] = dataUrl;
-
-                // Atualiza a pré-visualização no formulário com a imagem editada
-                const photoInputId = `foto${currentEditingPhotoIndex + 1}`;
-                const previewImgElement = document.querySelector(`#previewFotos img[data-input-id="${photoInputId}"]`);
-                if (previewImgElement) {
-                    previewImgElement.src = dataUrl;
-                }
-            }
-            closeDrawingModal();
-        }
-
-        function cancelDrawing() {
-            closeDrawingModal();
-        }
-
-        function closeDrawingModal() {
-            document.getElementById('drawingModalOverlay').style.display = 'none';
-            currentEditingPhotoIndex = -1;
-            drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height); // Limpa o canvas
-            drawingCanvas.originalImage = null; // Limpa a referência da imagem original
-            drawnShapes = []; // Garante que as formas sejam limpas ao fechar o modal
-        }
-        // --- FIM DA LÓGICA DO MODAL DE DESENHO ---
-
 
         // Event Listener para preencher os previews das fotos
         document.addEventListener('DOMContentLoaded', async () => {
             const previewFotosDiv = document.getElementById('previewFotos');
             const inputFotos = ['foto1', 'foto2', 'foto3', 'foto4'];
 
-            // Setup do canvas de desenho
-            setupDrawingCanvas();
-
-            inputFotos.forEach((id, index) => {
+            inputFotos.forEach(id => {
                 const inputElement = document.getElementById(id);
-                const descriptionElement = document.getElementById(`descricao${id.charAt(0).toUpperCase() + id.slice(1)}`); // e.g., descricaoFoto1
-                
-                // Carrega descrições salvas (se houver)
-                descriptionElement.value = photoDescriptions[index];
-
-                // Event listener para atualizar a descrição
-                descriptionElement.addEventListener('input', (event) => {
-                    photoDescriptions[index] = event.target.value;
-                });
-
                 if (inputElement) {
-                    inputElement.addEventListener('change', async function(event) {
-                        const existingPhotoItem = previewFotosDiv.querySelector(`.photo-item[data-input-id="${id}"]`);
-                        if (existingPhotoItem) {
-                            existingPhotoItem.remove();
+                    inputElement.addEventListener('change', function(event) {
+                        const existingImg = previewFotosDiv.querySelector(`img[data-input-id="${id}"]`);
+                        if (existingImg) {
+                            existingImg.remove();
                         }
-                        // Limpa qualquer edição anterior para esta foto
-                        editedPhotoDataUrls[index] = null;
 
                         if (event.target.files && event.target.files[0]) {
-                            const file = event.target.files[0];
-                            const compressedDataUrl = await compressImage(file);
-
-                            const photoItemDiv = document.createElement('div');
-                            photoItemDiv.classList.add('photo-item');
-                            photoItemDiv.dataset.inputId = id;
-
-                            const img = document.createElement('img');
-                            img.src = compressedDataUrl;
-                            img.dataset.inputId = id; // Para referência no PDF
-
-                            const actionsDiv = document.createElement('div');
-                            actionsDiv.classList.add('photo-actions');
-
-                            const editButton = document.createElement('button');
-                            editButton.textContent = 'Editar Desenho';
-                            editButton.type = 'button';
-                            editButton.addEventListener('click', () => openDrawingModal(index));
-
-                            const clearButton = document.createElement('button');
-                            clearButton.textContent = 'Limpar Foto';
-                            clearButton.type = 'button';
-                            clearButton.style.backgroundColor = '#dc3545'; // Cor para limpar
-                            clearButton.addEventListener('click', () => {
-                                // Limpa o input file
-                                inputElement.value = '';
-                                // Remove o item de pré-visualização
-                                photoItemDiv.remove();
-                                // Limpa a descrição e a imagem editada
-                                descriptionElement.value = '';
-                                photoDescriptions[index] = '';
-                                editedPhotoDataUrls[index] = null;
-                            });
-
-                            actionsDiv.appendChild(editButton);
-                            actionsDiv.appendChild(clearButton);
-
-                            photoItemDiv.appendChild(img);
-                            photoItemDiv.appendChild(actionsDiv); // Adiciona os botões ao item
-                            previewFotosDiv.appendChild(photoItemDiv);
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                const img = document.createElement('img');
+                                img.src = e.target.result;
+                                img.dataset.inputId = id;
+                                previewFotosDiv.appendChild(img);
+                            };
+                            reader.readAsDataURL(event.target.files[0]);
                         }
                     });
                 }
@@ -2232,8 +1708,7 @@
             const photoColumnSpacing = 10; // Espaçamento entre as duas colunas de fotos
             
             // Calculando a largura disponível para duas colunas de fotos
-            // Subtraindo um pequeno valor para tentar forçar melhor justificação
-            let photoColumnWidth = ((pageWidth - (2 * photoSideMargin) - photoColumnSpacing) / 2) - 2;
+            let photoColumnWidth = (pageWidth - (2 * photoSideMargin) - photoColumnSpacing) / 2;
             let photoAspectRatio = 0.75; // Assumindo proporção 4:3 (altura = largura = 0.75)
             let photoHeight = photoColumnWidth * photoAspectRatio;
             let currentPhotoY_photos = marginYTop + 20; // Ponto inicial Y para as fotos
@@ -2241,13 +1716,14 @@
             for (let i = 0; i < fotos.length; i++) {
                 const id = fotos[i];
                 const fileInput = document.getElementById(id);
-                const description = photoDescriptions[i] || ''; // Obtém a descrição
+                // Prioriza a imagem do preview (que pode ter vindo do IndexedDB ou do input)
+                const previewImg = document.querySelector(`#previewFotos img[data-input-id="${id}"]`);
                 let imageDataUrl = null;
 
-                // Prioriza a imagem editada, se existir
-                if (editedPhotoDataUrls[i]) {
-                    imageDataUrl = editedPhotoDataUrls[i];
+                if (previewImg && previewImg.src) {
+                    imageDataUrl = previewImg.src; // Usa a imagem já carregada no preview
                 } else if (fileInput && fileInput.files && fileInput.files[0]) {
+                    // Se não houver preview, tenta carregar do input (caso o usuário tenha acabado de selecionar)
                     try {
                         imageDataUrl = await compressImage(fileInput.files[0]);
                     } catch (error) {
@@ -2275,11 +1751,7 @@
                         posX = photoSideMargin + photoColumnWidth + photoColumnSpacing;
                     }
 
-                    // Estima a altura da descrição para verificar quebra de página
-                    const descriptionLines = doc.splitTextToSize(description, photoColumnWidth);
-                    const descriptionHeight = descriptionLines.length * (doc.getLineHeight() / doc.internal.scaleFactor) + 5; // +5 para padding
-
-                    const photoBlockTotalHeight = photoHeight + descriptionHeight + 15; // Altura da foto + descrição + espaço
+                    const photoBlockTotalHeight = photoHeight + 15; // Altura da foto + espaço para legenda
 
                     // Verifica se a próxima foto (ou par de fotos) cabe na página
                     if (col === 0 && (currentPhotoY_photos + photoBlockTotalHeight > pageHeight - marginYBottom)) {
@@ -2291,24 +1763,13 @@
                         currentPhotoY_photos = marginYTop + 20; // Reinicia Y para nova página
                     }
 
-                    doc.addImage(imageDataUrl, "PNG", posX, currentPhotoY_photos, photoColumnWidth, photoHeight);
+                    doc.addImage(imageDataUrl, "JPEG", posX, currentPhotoY_photos, photoColumnWidth, photoHeight);
                     doc.setFontSize(9);
-                    
-                    // Adiciona a descrição da foto, com alinhamento inteligente
-                    if (description.trim() !== "") {
-                        let currentTextY = currentPhotoY_photos + photoHeight + 5;
-
-                        for (let lineIndex = 0; lineIndex < descriptionLines.length; lineIndex++) {
-                            const line = descriptionLines[lineIndex];
-                            // Sempre tenta justificar. O jsPDF lida com a última linha curta.
-                            doc.text(line, posX, currentTextY, { align: "justify", maxWidth: photoColumnWidth });
-                            currentTextY += doc.getLineHeight() / doc.internal.scaleFactor;
-                        }
-                    }
+                    doc.text(`Foto ${i + 1}`, posX + photoColumnWidth / 2, currentPhotoY_photos + photoHeight + 5, { align: "center" });
 
                     if (col === 1) {
                          // Após a segunda foto na linha, avança para a próxima linha
-                         currentPhotoY_photos += photoHeight + descriptionHeight + 15; // Espaço entre as linhas de fotos (foto + descrição + espaço)
+                         currentPhotoY_photos += photoHeight + 25; // Espaço entre as linhas de fotos (foto + legenda + espaço)
                     }
                 } else {
                     console.warn(`Foto ${id} não pôde ser processada e não foi adicionada ao PDF.`);
@@ -2329,6 +1790,10 @@
 
             const servicoSelecionado = document.getElementById('servico').value;
             let allFieldsValid = true; // Flag geral de validação
+
+            if (!allFieldsValid) {
+                return; // Impede a continuação se os novos campos de plantio não estiverem preenchidos
+            }
 
             // Validação dos campos de árvore dinamicamente
             let allArvoreFieldsFilled = true;
@@ -2371,7 +1836,7 @@
 
                     if (!currentTreeFieldsValid) {
                         allArvoreFieldsFilled = false;
-                        item.style.border = '22px solid red';
+                        item.style.border = '2px solid red';
                     } else {
                         item.style.border = '1px solid #e0e0e0';
                     }
@@ -2465,15 +1930,11 @@
 
             // Limpa as entradas de fotos e previews
             const inputFotos = ['foto1', 'foto2', 'foto3', 'foto4'];
-            inputFotos.forEach((id, index) => {
+            inputFotos.forEach(id => {
                 const inputElement = document.getElementById(id);
                 if (inputElement) {
                     inputElement.value = ''; // Limpa o input file
                 }
-                // Limpa a descrição e a imagem editada
-                document.getElementById(`descricao${id.charAt(0).toUpperCase() + id.slice(1)}`).value = '';
-                photoDescriptions[index] = '';
-                editedPhotoDataUrls[index] = null;
             });
             document.getElementById('previewFotos').innerHTML = ''; // Limpa as pré-visualizações
 
@@ -2492,8 +1953,7 @@
             // --- ALTERAÇÃO AQUI: Atualiza o número do relatório ao limpar o formulário ---
             incrementAndDisplayNextReportNumber();
 
-            // Substituído alert por console.log para não interromper o fluxo
-            console.log("Formulário limpo! Pronto para registrar a próxima árvore. O número do relatório foi atualizado.");
+            alert("Formulário limpo! Pronto para registrar a próxima árvore. O número do relatório foi atualizado.");
         }
 
         // --- EVENT LISTENER PARA O NOVO BOTÃO DE LIMPAR ---
